@@ -1,4 +1,4 @@
-; Tests for using Z3 to handle siomple inferences
+; Tests for using Z3 to handle simple inferences
 ;
 ;   Run this file with "z3 -smt2 [file name].z3"
 ;   Running this file should output the following:
