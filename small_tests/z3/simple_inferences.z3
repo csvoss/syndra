@@ -10,15 +10,15 @@
 ;   Author: Jean Yang
 
 ; We only have sites right now.
-(declare-datatypes () ((Component Site)))
+(declare-datatypes () ((Site MEK)))
 
 ; If something is phosphorylated, then it should be active.
-(declare-fun active (Component) Bool)
-(declare-fun kinase-active (Component) Bool)
-(assert (forall ((s Component)) (=> (kinase-active s) (active s))))
+(declare-fun active (Site) Bool)
+(declare-fun kinase-active (Site) Bool)
+(assert (forall ((s Site)) (=> (kinase-active s) (active s))))
 
 (push)
-(declare-const s1 Component)
+(declare-const s1 Site)
 (assert (kinase-active s1))
 ; If something is phosphorylated (kinase-active), then it is active.
 ; Thus the following assertion should cause the model to be unsatisfiable. 
@@ -41,12 +41,11 @@
 
 ; If we know something more specific phosphorylates a site, then we can infer
 ; the more general phosphorylation.
-(declare-fun phosphorylated (Component KinaseLabel) Bool)
-(assert (forall ((s Component) (k1 KinaseLabel) (k2 KinaseLabel))
+(declare-fun phosphorylated (Site KinaseLabel) Bool)
+(assert (forall ((s Site) (k1 KinaseLabel) (k2 KinaseLabel))
   (=> (and (kinase-subsumes k2 k1) (phosphorylated s k2)) (phosphorylated s k1))))
 
 (push)
-(declare-const MEK Component)
 (assert (in-kinase-family (family Serine) (kinase S222)))
 (assert (phosphorylated MEK (kinase S222)))
 (assert (kinase-subsumes (kinase S222) (family Serine)))
