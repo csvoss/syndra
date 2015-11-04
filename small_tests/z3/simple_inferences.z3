@@ -10,49 +10,49 @@
 ;   Author: Jean Yang
 
 ; We only have sites right now.
-(declare-datatypes () ((Site MEK)))
+(declare-datatypes () ((Protein MEK)))
 
 ; If something is phosphorylated, then it should be active.
-(declare-fun active (Site) Bool)
-(declare-fun kinase-active (Site) Bool)
-(assert (forall ((s Site)) (=> (kinase-active s) (active s))))
+(declare-fun active (Protein) Bool)
+(declare-fun site-active (Protein) Bool)
+(assert (forall ((s Protein)) (=> (site-active s) (active s))))
 
 (push)
-(declare-const s1 Site)
-(assert (kinase-active s1))
-; If something is phosphorylated (kinase-active), then it is active.
+(declare-const s1 Protein)
+(assert (site-active s1))
+; If something is site-active, then it is active.
 ; Thus the following assertion should cause the model to be unsatisfiable. 
 (assert (not (active s1)))
 (check-sat)
 (pop)
 
 ; Declare some relationships between different granularities of phosphorylation.
-(declare-datatypes () ((KinaseFamily Serine)))
-(declare-datatypes () ((KinaseMolecule S222)))
-(declare-datatypes () ((KinaseLabel none (family (f KinaseFamily)) (kinase (k KinaseMolecule)))))
-(declare-fun kinase-subsumes (KinaseLabel KinaseLabel) Bool)
-(declare-fun in-kinase-family (KinaseLabel KinaseLabel) Bool)
+(declare-datatypes () ((Residue Serine)))
+(declare-datatypes () ((Site S222)))
+(declare-datatypes () ((SiteLabel none (residue (f Residue)) (site (k Site)))))
+(declare-fun site-refines (SiteLabel SiteLabel) Bool)
+(declare-fun in-family (SiteLabel SiteLabel) Bool)
 
-; Declare subsumption relationships between different granularities of kinases.
-(assert (forall ((k1 KinaseLabel) (k2 KinaseLabel))
-  (=> (in-kinase-family k1 k2) (kinase-subsumes k2 k1))))
-; Having some information about a kinase subsumes having no information.
-(assert (forall ((k1 KinaseLabel)) (kinase-subsumes k1 none)))
+; Declare subsumption relationships between different granularities of sites.
+(assert (forall ((k1 SiteLabel) (k2 SiteLabel))
+  (=> (in-family k1 k2) (site-refines k2 k1))))
+; Having some information about a site refines having no information.
+(assert (forall ((k1 SiteLabel)) (site-refines k1 none)))
 
 ; If we know something more specific phosphorylates a site, then we can infer
 ; the more general phosphorylation.
-(declare-fun phosphorylated (Site KinaseLabel) Bool)
-(assert (forall ((s Site) (k1 KinaseLabel) (k2 KinaseLabel))
-  (=> (and (kinase-subsumes k2 k1) (phosphorylated s k2)) (phosphorylated s k1))))
+(declare-fun phosphorylated (Protein SiteLabel) Bool)
+(assert (forall ((s Protein) (k1 SiteLabel) (k2 SiteLabel))
+  (=> (and (site-refines k2 k1) (phosphorylated s k2)) (phosphorylated s k1))))
 
 (push)
-(assert (in-kinase-family (family Serine) (kinase S222)))
-(assert (phosphorylated MEK (kinase S222)))
-(assert (kinase-subsumes (kinase S222) (family Serine)))
+(assert (in-family (residue Serine) (site S222)))
+(assert (phosphorylated MEK (site S222)))
+; (assert (site-refines (site S222) (residue Serine)))
 
 ; The previous assertion should imply the next one can't be true.
 (push)
-(assert (not (phosphorylated MEK (family Serine))))
+(assert (not (phosphorylated MEK (residue Serine))))
 (check-sat)
 (pop)
 
@@ -69,4 +69,9 @@
 (check-sat)
 (pop)
 
+(push)
+(assert (phosphorylated MEK none))
+(check-sat)
+(get-model)
+; (assert (phosphorylated MEK (residue Serine)))
 (pop)
