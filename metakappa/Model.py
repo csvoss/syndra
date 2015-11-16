@@ -73,10 +73,17 @@ class Graph:
     def __init__(self):
         self.__allnodes = Set()     # fancyV (how does this get populated?)
 
-        self.__nodes = Set()        # list of nodes
-        self.__links = Set()        # list of edges
-        self.__bindings = Set()     # list of bindings (use dict?)
-        self.__labels = []          # hm, what are labels?
+        self.nodes = Set()        # list of nodes
+        self.links = Set()        # list of edges
+        self.bindings = Set()     # list of bindings (use dict?)
+        self.labels = []          # hm, what are labels?
+
+    def __eq__(self, other):
+        return self.__allnodes == other.__allnodes and \
+            self.nodes == other.nodes and \
+            self.links == other.links and \
+            self.bindings == other.bindings and \
+            self.labels == other.labels
 
     @staticmethod
     def unord(s):
@@ -87,27 +94,41 @@ class Graph:
     def applyAction(self, alpha):
         """From Definition 3 of Adrien Husson's report.
         """
-        self.__nodes.difference_update(alpha.ag_sub)
-        self.__nodes.union_update(alpha.ag_add)
+        self.nodes.difference_update(alpha.ag_sub)
+        self.nodes.union_update(alpha.ag_add)
 
-        self.__links.difference_update(alpha.ln_sub)
-        self.__links.difference_update(
+        self.links.difference_update(alpha.ln_sub)
+        self.links.difference_update(
             Graph.unord(itertools.product(alpha.ag_sub, self.__allnodes)))
-        self.__links.union_update(alpha.ln_add)
+        self.links.union_update(alpha.ln_add)
 
-        self.__bindings.difference_update(alpha.pl_sub)
-        self.__bindings.difference_update(
+        self.bindings.difference_update(alpha.pl_sub)
+        self.bindings.difference_update(
             itertools.product(alpha.ag_sub, self.__allnodes))
-        self.__bindings.difference_update(
+        self.bindings.difference_update(
             itertools.product(self.__allnodes, alpha.ag_sub))
-        self.__bindings.union_update(alpha.pl_add)
+        self.bindings.union_update(alpha.pl_add)
 
-# Models are sets of pairs <g, \alpha> where g is a structured graph and \alpha
-# is a set of actions.
 class Model:
     """ Models are sets of pairs <g, \alpha> where g is a structured graph and
     \alpha is a set of actions.
     """
     def __init__(self):
-        self.__graph = None
-        self.__actions = []
+        self.model = Set()
+
+    def join(self, model2):
+        """Definition 4.
+        """
+        newModel = Set()
+        
+        m2_graphs = [seq[0] for seq in model2.model]
+        for (graph, action) in self.model:
+            if graph in m2_graphs:
+                newModel.add((graph, action))
+
+        m1_graphs = [seq[0] for seq in self.model]
+        for (graph, action) in model2.model:
+            if graph in m1_graphs:
+                newModel.add((graph, action))
+
+        return newModel
