@@ -46,7 +46,7 @@ class Action:
     """An action \alpha is a 6-tuple of the form <ag+, ag-, ln+, ln-, pl+, pl->
     which is either an atomic action or the sum of actions.
     """
-    def __init__(self):
+    def __init__(self, action):
         self.ag_add = Set()
         self.ab_sub = Set()
         self.ln_add = Set()
@@ -54,8 +54,6 @@ class Action:
         self.pl_add = Set()
         self.pl_sub = Set()
 
-    def __init__(self, action):
-        self.__init__()
         action.doAction(self)
 
 class Node:
