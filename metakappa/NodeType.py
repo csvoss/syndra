@@ -2,44 +2,49 @@
 
 .. moduleauthor:: Jean Yang <jean_yang@hms.harvard.edu>
 """
-class Agent:
-    pass
+class Agent(object):
+    def __init__(self):
+        self.parents = []
+        self.name = ""
+    def __eq__(self, other):
+        return self.name == other.name and self.parents == other.parents
 
-class Protein(Agent):
-    pass
+class ProteinFamily(Agent):
+    def __init__(self, name):
+        super(ProteinFamily, self).__init__()
+        self.name = name
+
+class Protein(ProteinFamily):
+    def __init__(self, name, parents):
+        for parent in parents:
+            super(Protein, self).__init__(parent)
+        self.name = name
+        self.parents.extend(parents)
 
 class Residue(Agent):
     """A residue is an amino acid monomer.
     """
-    pass
-class Serine(Residue):
-    pass
-class Tyrosine(Residue):
-    pass
+    def __init__(self, name):
+        super(Residue, self).__init__()
+        self.name = name
 
 class Site(Residue):
     """A site is a region on a protein to which ligands may form a bond.
        Note that we can't strictly use subtyping relationships because sites
        are both in the "Residue" family and a specific protein family.
     """
-    def __init__(self, residue):
-        self.residue = residue # Note that this has to be an amino acid.
-    def __eq__(self, other):
-        self.residue == other.residue
+    def __init__(self, name, parent):
+        super(Site, self).__init__(parent)
+        self.name = name
+        self.parents.append(parent) # Note that this has to be an amino acid.
 
-def isSubtype(v, parent):
+def canmerge(name, parents):
+    return name=="" or name in parents
+
+def infamily(v, parent):
     """Returns whether the value 'v' is in the family of 'parent.'
-       TODO: Generalize this function once we have more types.
+       The idea is to use this function to decide when we can combine
+       actions we get from the NLP.
     """
-    if isinstance(v, Site):
-        # If we have a site, need to additionally check that v's parent residue
-        # is the same as the parent residue.
-        if issubclass(parent, Site):
-            return v==parent
-        elif issubclass(parent, Residue):
-            print v.residue
-            return v.residue==parent
-        else:
-            return issubclass(v.__class__, parent)
-    else:
-        return issubclass(v.__class__, parent)
+    return issubclass(v.__class__, parent.__class__) and \
+        canmerge(parent.name, v.parents)
