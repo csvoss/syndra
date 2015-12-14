@@ -1,6 +1,7 @@
 """Definitions for L language.
 
 .. moduleauthor:: Jean Yang <jean_yang@hms.harvard.edu>
+.. moduleauthor:: Chelsea Voss
 """
 from sets import Set
 import itertools
@@ -196,7 +197,7 @@ class EqualsPredicate(Predicate):
         self.x = I(x)
         self.y = I(y)
     def filter_over_helper(g_set, a_set):
-        return TopPredicate().filter_over(g_set, a_set) if (self.x == self.y)
+        return TopPredicate().filter_over(g_set, a_set) if (self.x == self.y) \
                 else BottomPredicate().filter_over(g_set, a_set)
 class SigmaPredicate(Predicate):
     def __init__(self, I, sigma, x):
