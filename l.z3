@@ -33,6 +33,7 @@
 ; - the model should be a <g, a> pair
 
 
+
 ; Graph datatype:
 ; V - list of vertices
 ; L - links between vertices
@@ -69,6 +70,19 @@
     (unparent-action (unparent1 Identifier) (unparent2 Identifier))
     )))
 (declare-const actions (List Action))
+
+; Utility function: list contains
+; TODO; not currently working.
+(define-fun contains ((xs (List Action)) (a Action)) Bool
+  (ite (= xs nil) false
+    (ite (= (head xs) a) true
+                         (contains (tail xs) a))))
+(assert (forall ((a Action))
+  (not (contains nil a))))
+(assert (forall ((xs (List Action)) (a Action))
+    (iff (contains xs a)
+         (or (= (head xs) a) (contains (tail xs) a)))))
+
 
 ; Example usage.
 (push)
@@ -128,6 +142,19 @@
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (graph-parents (interpretation x) (interpretation y)))
+(check-sat)
+(get-model)
+(pop)
+
+; "Bar" of "Variable x has child y", which seems to indicate that x has
+; child y only in the second graph produced by G combined with A.
+; TODO.
+
+; "Do" of "Variable x has child y".
+(push)
+(declare-const x Variable)
+(declare-const y Variable)
+(assert (contains actions (parent-action (interpretation x) (interpretation y))))
 (check-sat)
 (get-model)
 (pop)
