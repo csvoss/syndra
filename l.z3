@@ -37,16 +37,17 @@
 ; V - list of vertices
 ; L - links between vertices
 ; P - parent/child relationships
-(declare-datatypes () ((Vertex (vertex (label Int)))))
-(declare-fun graph-has (Vertex) Bool)
-(declare-fun graph-links (Vertex Vertex) Bool)
-(declare-fun graph-parents (Vertex Vertex) Bool)
+; La - vertex labels (access using `get-label`)
+(declare-datatypes () ((Identifier (node (get-label Int)))))
+(declare-fun graph-has (Identifier) Bool)
+(declare-fun graph-links (Identifier Identifier) Bool)
+(declare-fun graph-parents (Identifier Identifier) Bool)
 
 ; Example usage.
 (push)
-(declare-const enzyme Vertex)
-(declare-const substrate Vertex)
-(declare-const site Vertex)
+(declare-const enzyme Identifier)
+(declare-const substrate Identifier)
+(declare-const site Identifier)
 (assert (graph-links site substrate))
 (assert (graph-parents enzyme site))
 (check-sat)
@@ -58,7 +59,6 @@
 ; ag+, ag-, ln+, ln-, pl+, pl-
 ; An action is a sum of atomic actions -- let's represent it that way instead.
 ; Note that the notation g.a in the paper refers to applying a to g.
-(declare-datatypes () ((Identifier (identifier-labeled (label Int)))))
 (declare-datatypes () ((Action
     id-action
     (add-action (added Identifier))
