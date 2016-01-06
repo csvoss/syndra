@@ -79,8 +79,55 @@
 (get-model)
 (pop)
 
+
 ; Predicates over graphs and actions:
-; see page 7
-; Make functions for each predicate
-; Assert implications: if the function is true, then some stuff about g,a holds
-; Then, later on, we can call those functions as shortcuts
+; see page 7 of L.pdf
+; Make functions for each predicate.
+; Assert implications: if the function is true, then some stuff about g,a holds.
+; Then, later on, we can call those functions as shortcuts.
+
+(declare-datatypes () ((Variable (variable (get-varname Int)))))
+(declare-fun interpretation (Variable) Identifier)
+
+; Top.
+(push)
+(assert true)
+(check-sat)
+(get-model)
+(pop)
+
+; Bottom.
+(push)
+(assert false)
+(check-sat)     ;; should be unsat
+(pop)
+
+; Equality of variables x and y.
+(push)
+(declare-const x Variable)
+(declare-const y Variable)
+(assert (= (get-varname x) (get-varname y)))
+(check-sat)
+(get-model)
+(pop)
+
+; Variable has label from a specific subset of labels.
+; (Not implementing; we can implement this with an OR of specific labels.)
+
+; Variable has specific label.
+(push)
+(declare-const x Variable)
+(declare-const label Int)
+(assert (= (get-label (interpretation x)) label))
+(check-sat)
+(get-model)
+(pop)
+
+; Variable x has child y.
+(push)
+(declare-const x Variable)
+(declare-const y Variable)
+(assert (graph-parents (interpretation x) (interpretation y)))
+(check-sat)
+(get-model)
+(pop)
