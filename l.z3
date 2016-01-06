@@ -69,26 +69,13 @@
     (parent-action (parent1 Identifier) (parent2 Identifier))
     (unparent-action (unparent1 Identifier) (unparent2 Identifier))
     )))
-(declare-const actions (List Action))
-
-; Utility function: list contains
-; TODO; not currently working.
-(define-fun contains ((xs (List Action)) (a Action)) Bool
-  (ite (= xs nil) false
-    (ite (= (head xs) a) true
-                         (contains (tail xs) a))))
-(assert (forall ((a Action))
-  (not (contains nil a))))
-(assert (forall ((xs (List Action)) (a Action))
-    (iff (contains xs a)
-         (or (= (head xs) a) (contains (tail xs) a)))))
-
+(declare-fun actions-has (Action) Bool)
 
 ; Example usage.
 (push)
 (declare-const u Identifier)
 (declare-const v Identifier)
-(assert (= actions (insert (link-action u v) nil)))
+(assert (actions-has (link-action u v)))
 (check-sat)
 (get-model)
 (pop)
@@ -154,7 +141,7 @@
 (push)
 (declare-const x Variable)
 (declare-const y Variable)
-(assert (contains actions (parent-action (interpretation x) (interpretation y))))
+(assert (actions-has (parent-action (interpretation x) (interpretation y))))
 (check-sat)
 (get-model)
 (pop)
