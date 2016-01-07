@@ -172,7 +172,15 @@
 ; "Bar" of "Variable x has child y", which seems to indicate that x has
 ; child y only in the second graph produced by G combined with A.
 ; This is the postcondition!
-; TODO.
+(push)
+(echo "")
+(echo "bar x.y")
+(declare-const x Variable)
+(declare-const y Variable)
+(assert (graph-2-parents (interpretation x) (interpretation y)))
+(check-sat)
+(get-model)
+(pop)
 
 ; "Do" of "Variable x has child y".
 (push)
@@ -196,7 +204,16 @@
 (get-model)
 (pop)
 
-; "Bar" of Variable x links to variable y; TODO. Again a postcondition.
+; "Bar" of Variable x links to variable y; Again a postcondition.
+(push)
+(echo "")
+(echo "bar x^y")
+(declare-const x Variable)
+(declare-const y Variable)
+(assert (graph-2-links (interpretation x) (interpretation y)))
+(check-sat)
+(get-model)
+(pop)
 
 ; "Do" of "Variable x links to variable y".
 (push)
@@ -230,7 +247,15 @@
 (get-model)
 (pop)
 
-; "Bar" of "Has" of x. Again, a postcondition. TODO.
+; "Bar" of "Has" of x. Again, a postcondition.
+(push)
+(echo "")
+(echo "bar has(x)")
+(declare-const x Variable)
+(assert (graph-2-has (interpretation x)))
+(check-sat)
+(get-model)
+(pop)
 
 ; "Add" of variable x, and "Rem" of variable x. Given that these are
 ; preconditions, as written in the L paper, I'm not convinced that
