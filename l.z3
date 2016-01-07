@@ -85,6 +85,28 @@
 (pop)
 
 
+; Postcondition graph: the graph created by the graph-action pair.
+; The following code was created by consulting Definition 3 on page 5.
+(declare-fun graph-2-has (Identifier) Bool)
+(assert (forall ((i Identifier))
+  (iff (or (and (graph-has i) (not (actions-has (rem-action i)))) (actions-has (add-action i)))
+       (graph-2-has i))))
+(declare-fun graph-2-links (Identifier Identifier) Bool)
+(assert (forall ((a Identifier) (b Identifier))
+  (iff (or (actions-has (link-action a b))
+           (and (and (graph-links a b) (not (actions-has (unlink-action a b))))
+                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
+       (graph-2-links a b))))
+(declare-fun graph-2-parents (Identifier Identifier) Bool)
+(assert (forall ((a Identifier) (b Identifier))
+  (iff (or (actions-has (parent-action a b))
+           (and (and (graph-parents a b) (not (actions-has (unparent-action a b))))
+                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
+       (graph-2-parents a b))))
+(echo "")
+(echo "Postcondition graph defined.")
+(check-sat)
+
 ; Predicates over graphs and actions:
 ; see page 7 of L.pdf
 ; Make functions for each predicate.
