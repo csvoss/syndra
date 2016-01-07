@@ -58,11 +58,11 @@
 (pop)
 
 
-; Action datatype:
+; AtomicAction datatype:
 ; ag+, ag-, ln+, ln-, pl+, pl-
 ; An action is a sum of atomic actions -- let's represent it that way instead.
 ; Note that the notation g.a in the paper refers to applying a to g.
-(declare-datatypes () ((Action
+(declare-datatypes () ((AtomicAction
     id-action
     (add-action (added Identifier))
     (rem-action (removed Identifier))
@@ -71,7 +71,7 @@
     (parent-action (parent1 Identifier) (parent2 Identifier))
     (unparent-action (unparent1 Identifier) (unparent2 Identifier))
     )))
-(declare-fun actions-has (Action) Bool)
+(declare-fun action-has (AtomicAction) Bool)
 
 ; Example usage.
 (push)
@@ -79,7 +79,7 @@
 (echo "Example action.")
 (declare-const u Identifier)
 (declare-const v Identifier)
-(assert (actions-has (link-action u v)))
+(assert (action-has (link-action u v)))
 (check-sat)
 (get-model)
 (pop)
@@ -89,19 +89,19 @@
 ; The following code was created by consulting Definition 3 on page 5.
 (declare-fun graph-2-has (Identifier) Bool)
 (assert (forall ((i Identifier))
-  (iff (or (and (graph-has i) (not (actions-has (rem-action i)))) (actions-has (add-action i)))
+  (iff (or (and (graph-has i) (not (action-has (rem-action i)))) (action-has (add-action i)))
        (graph-2-has i))))
 (declare-fun graph-2-links (Identifier Identifier) Bool)
 (assert (forall ((a Identifier) (b Identifier))
-  (iff (or (actions-has (link-action a b))
-           (and (and (graph-links a b) (not (actions-has (unlink-action a b))))
-                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
+  (iff (or (action-has (link-action a b))
+           (and (and (graph-links a b) (not (action-has (unlink-action a b))))
+                (and (not (action-has (rem-action a))) (not (action-has (rem-action b))))))
        (graph-2-links a b))))
 (declare-fun graph-2-parents (Identifier Identifier) Bool)
 (assert (forall ((a Identifier) (b Identifier))
-  (iff (or (actions-has (parent-action a b))
-           (and (and (graph-parents a b) (not (actions-has (unparent-action a b))))
-                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
+  (iff (or (action-has (parent-action a b))
+           (and (and (graph-parents a b) (not (action-has (unparent-action a b))))
+                (and (not (action-has (rem-action a))) (not (action-has (rem-action b))))))
        (graph-2-parents a b))))
 (echo "")
 (echo "Postcondition graph defined.")
@@ -188,7 +188,7 @@
 (echo "do(x.y)")
 (declare-const x Variable)
 (declare-const y Variable)
-(assert (actions-has (parent-action (interpretation x) (interpretation y))))
+(assert (action-has (parent-action (interpretation x) (interpretation y))))
 (check-sat)
 (get-model)
 (pop)
@@ -221,7 +221,7 @@
 (echo "do(x^y)")
 (declare-const x Variable)
 (declare-const y Variable)
-(assert (actions-has (link-action (interpretation x) (interpretation y))))
+(assert (action-has (link-action (interpretation x) (interpretation y))))
 (check-sat)
 (get-model)
 (pop)
@@ -232,7 +232,7 @@
 (echo "do(x/^y)")
 (declare-const x Variable)
 (declare-const y Variable)
-(assert (actions-has (unlink-action (interpretation x) (interpretation y))))
+(assert (action-has (unlink-action (interpretation x) (interpretation y))))
 (check-sat)
 (get-model)
 (pop)
