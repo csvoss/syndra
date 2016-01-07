@@ -46,6 +46,8 @@
 
 ; Example usage.
 (push)
+(echo "")
+(echo "Example graph.")
 (declare-const enzyme Identifier)
 (declare-const substrate Identifier)
 (declare-const site Identifier)
@@ -73,6 +75,8 @@
 
 ; Example usage.
 (push)
+(echo "")
+(echo "Example action.")
 (declare-const u Identifier)
 (declare-const v Identifier)
 (assert (actions-has (link-action u v)))
@@ -92,6 +96,8 @@
 
 ; Top.
 (push)
+(echo "")
+(echo "T")
 (assert true)
 (check-sat)
 (get-model)
@@ -99,12 +105,16 @@
 
 ; Bottom.
 (push)
+(echo "")
+(echo "_|_")
 (assert false)
 (check-sat)     ;; should be unsat
 (pop)
 
 ; Equality of variables x and y.
 (push)
+(echo "")
+(echo "x=y")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (= (get-varname x) (get-varname y)))
@@ -117,15 +127,19 @@
 
 ; Variable has specific label.
 (push)
+(echo "")
+(echo "Label(x)")
 (declare-const x Variable)
-(declare-const label Int)
-(assert (= (get-label (interpretation x)) label))
+(declare-const Label Int)
+(assert (= (get-label (interpretation x)) Label))
 (check-sat)
 (get-model)
 (pop)
 
 ; Variable x has child y.
 (push)
+(echo "")
+(echo "x.y")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (graph-parents (interpretation x) (interpretation y)))
@@ -140,6 +154,8 @@
 
 ; "Do" of "Variable x has child y".
 (push)
+(echo "")
+(echo "do(x.y)")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (actions-has (parent-action (interpretation x) (interpretation y))))
@@ -149,6 +165,8 @@
 
 ; Variable x links to variable y.
 (push)
+(echo "")
+(echo "x^y")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (graph-links (interpretation x) (interpretation y)))
@@ -160,6 +178,8 @@
 
 ; "Do" of "Variable x links to variable y".
 (push)
+(echo "")
+(echo "do(x^y)")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (actions-has (link-action (interpretation x) (interpretation y))))
@@ -169,6 +189,8 @@
 
 ; "Do" of "Variable x unlinks to variable y".
 (push)
+(echo "")
+(echo "do(x/^y)")
 (declare-const x Variable)
 (declare-const y Variable)
 (assert (actions-has (unlink-action (interpretation x) (interpretation y))))
@@ -178,6 +200,8 @@
 
 ; "Has" of variable x.
 (push)
+(echo "")
+(echo "has(x)")
 (declare-const x Variable)
 (assert (graph-has (interpretation x)))
 (check-sat)
@@ -189,3 +213,8 @@
 ; "Add" of variable x, and "Rem" of variable x. Given that these are
 ; preconditions, as written in the L paper, I'm not convinced that
 ; we gain anything by implementing them as opposed to using has(x) and !has(x).
+
+; Examples:
+; Kinase with two sites
+; Prior knowledge about GTP-kinases, about kinases, ...
+; Complexes
