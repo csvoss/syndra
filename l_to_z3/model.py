@@ -16,11 +16,11 @@ Identifier.declare('node', ('label', IntSort()))
 Identifier = Identifier.create()
 
 # Graph, before a rule or action has applied.
-# class Pregraph(object):
-#     def __init__(self):
-#         self.has = Function('has', Identifier, BoolSort())
-#         self.links = Function('links', Identifier, Identifier, BoolSort())
-#         self.parents = Function('parents', Identifier, Identifier, BoolSort())
+class Pregraph(object):
+    def __init__(self):
+        self.has = Function('has', Identifier, BoolSort())
+        self.links = Function('links', Identifier, Identifier, BoolSort())
+        self.parents = Function('parents', Identifier, Identifier, BoolSort())
 
 # Atomic action. An Action is comprised of a set of these.
 AtomicAction = Datatype('AtomicAction')
@@ -50,7 +50,7 @@ class Postgraph(object):
         self.parents = Function('parents', Identifier, Identifier, BoolSort())
 
         # Constrain the postgraph's nodes, links, and parent-child relationships
-        # appropriately, according to what the graph and action contain. TODO.
+        # appropriately, according to what the graph and action contain.
         i = Const('i', Identifier)
         engine.z3_assert(ForAll(Const('i', Identifier),
                                 Iff(self.has(i),
@@ -87,212 +87,3 @@ class Model(object):
         self.pregraph = Pregraph()
         self.action = Action()
         self.postgraph = Postgraph(self.pregraph, self.action)
-
-
-
-# TODO: implement Predicate. This thing should be an interface implemented by a
-# bunch of different subclasses; combine those subclasses together to make a
-# predicate, and then allow the predicate to be executed / checked / model-got /
-# whatever we want by Z3. In fact, put Predicate stuff in a different file
-# entirely. This is one abstraction layer higher than the above Z3 definitions
-# are. Probably the subclasses should only return Z3 formulae, not make any
-# assertions; then, Predicate can manipulate those formulae into an assertion.
-
-class Predicate(object):
-    """Parent class which all Predicates will subclass.
-
-    Contains implementations of some z3-related functionality. Subclasses will
-    override get_predicate."""
-
-    def __init__(self):
-        self.asserted_yet = False
-
-    def get_predicate(self):
-        raise NotImplementedError()
-
-    def assert_over(self, model):
-        pass
-        self.asserted_yet = True
-
-    def check_sat(self, model):
-        pass
-
-    def get_model(self, model):
-        pass
-
-    def get_all_models(self, model):
-        pass
-
-
-class Top(Predicate):
-    def __init__(self):
-        pass
-
-    def get_predicate(self):
-        pass
-
-class Bottom(Predicate):
-    def __init__(self):
-        pass
-
-    def get_predicate(self):
-        pass
-
-class Equal(Predicate):
-    def __init__(self, x, y):
-        # ensure that x and y are both of the right type (Variable)
-        pass
-
-    def get_predicate(self):
-        pass
-
-"""
-; Postcondition graph: the graph created by the graph-action pair.
-; The following code was created by consulting Definition 3 on page 5.
-(declare-fun graph-2-has (Identifier) Bool)
-(echo "")
-(echo "Postcondition graph defined.")
-(check-sat)
-
-; Predicates over graphs and actions:
-; see page 7 of L.pdf
-; Make functions for each predicate.
-; Assert implications: if the function is true, then some stuff about g,a holds.
-; Then, later on, we can call those functions as shortcuts.
-
-(declare-datatypes () ((Variable (variable (get-varname Int)))))
-(declare-fun interpretation (Variable) Identifier)
-
-; Equality of variables x and y.
-(push)
-(echo "")
-(echo "x=y")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (= (get-varname x) (get-varname y)))
-(check-sat)
-(get-model)
-(pop)
-
-; Variable has label from a specific subset of labels.
-; (Not implementing; we can implement this with an OR of specific labels.)
-
-; Variable has specific label.
-(push)
-(echo "")
-(echo "Label(x)")
-(declare-const x Variable)
-(declare-const Label Int)
-(assert (= (get-label (interpretation x)) Label))
-(check-sat)
-(get-model)
-(pop)
-
-; Variable x has child y.
-(push)
-(echo "")
-(echo "x.y")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (graph-parents (interpretation x) (interpretation y)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Bar" of "Variable x has child y", which seems to indicate that x has
-; child y only in the second graph produced by G combined with A.
-; This is the postcondition!
-(push)
-(echo "")
-(echo "bar x.y")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (graph-2-parents (interpretation x) (interpretation y)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Do" of "Variable x has child y".
-(push)
-(echo "")
-(echo "do(x.y)")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (actions-has (parent-action (interpretation x) (interpretation y))))
-(check-sat)
-(get-model)
-(pop)
-
-; Variable x links to variable y.
-(push)
-(echo "")
-(echo "x^y")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (graph-links (interpretation x) (interpretation y)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Bar" of Variable x links to variable y; Again a postcondition.
-(push)
-(echo "")
-(echo "bar x^y")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (graph-2-links (interpretation x) (interpretation y)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Do" of "Variable x links to variable y".
-(push)
-(echo "")
-(echo "do(x^y)")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (actions-has (link-action (interpretation x) (interpretation y))))
-(check-sat)
-(get-model)
-(pop)
-
-; "Do" of "Variable x unlinks to variable y".
-(push)
-(echo "")
-(echo "do(x/^y)")
-(declare-const x Variable)
-(declare-const y Variable)
-(assert (actions-has (unlink-action (interpretation x) (interpretation y))))
-(check-sat)
-(get-model)
-(pop)
-
-; "Has" of variable x.
-(push)
-(echo "")
-(echo "has(x)")
-(declare-const x Variable)
-(assert (graph-has (interpretation x)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Bar" of "Has" of x. Again, a postcondition.
-(push)
-(echo "")
-(echo "bar has(x)")
-(declare-const x Variable)
-(assert (graph-2-has (interpretation x)))
-(check-sat)
-(get-model)
-(pop)
-
-; "Add" of variable x, and "Rem" of variable x. Given that these are
-; preconditions, as written in the L paper, I'm not convinced that
-; we gain anything by implementing them as opposed to using has(x) and !has(x).
-
-; Examples:
-; Kinase with two sites
-; Prior knowledge about GTP-kinases, about kinases, ...
-; Complexes
-"""
