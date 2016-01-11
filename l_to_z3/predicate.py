@@ -5,11 +5,15 @@
 # Probably the subclasses should only return Z3 formulae, not make any
 # assertions; then, Predicate can manipulate those formulae into an assertion.
 
-"""
-TODO: Variable, Interpretation.
-(declare-datatypes () ((Variable (variable (get-varname Int)))))
-(declare-fun interpretation (Variable) Identifier)
-"""
+from model import Identifier, Pregraph, AtomicAction, Action, Postgraph, Model
+from z3 import *
+from z3_helpers import *
+
+DEBUG = False
+
+Variable = Datatype('Variable')
+Variable.declare('variable', ('get_varname', IntSort()))
+Variable = Variable.create()
 
 class Predicate(object):
     """Parent class which all Predicates will subclass.
@@ -17,45 +21,57 @@ class Predicate(object):
     Contains implementations of some z3-related functionality. Subclasses will
     override get_predicate."""
 
-    def __init__(self):
-        self.asserted_yet = False
-        self.solver = z3.Solver()
+    def __init__(self, model):
+        self.solver = Solver()
+        self.model = model
+        self.interpretation = Function('interpretation', Variable, Identifier)
+
+        self._asserted_yet = False
+        self.model.add_assertions(self.solver)
 
     def get_predicate(self):
         raise NotImplementedError("Implement get_predicate in subclasses.")
 
-    def assert_over(self, model):
-        pass
-        self.asserted_yet = True
+    def _assert_over(self):
+        self.solver.add(self.get_predicate())
 
-    def check_sat(self, model):
-        if not self.asserted_yet:
-            self.assert_over(model)
-        pass
+        self._asserted_yet = True
 
-    def get_model(self, model):
-        if not self.asserted_yet:
-            self.assert_over(model)
-        pass
+    def check_sat(self):
+        if not self._asserted_yet:
+            self._assert_over()
 
-    def get_all_models(self, model):
-        if not self.asserted_yet:
-            self.assert_over(model)
-        pass
+        output = self.solver.check()
+        if DEBUG:
+            print output
+        return output
 
+    def get_model(self):
+        """Raises Z3Exception if the model is not available."""
+
+        if not self._asserted_yet:
+            self._assert_over()
+
+        output = self.solver.model()
+        if DEBUG:
+            print output
+        return output
+
+
+    def get_models(self):
+        if not self._asserted_yet:
+            self._assert_over()
+
+        # http://stackoverflow.com/questions/13395391/z3-finding-all
+        # TODO.
+        return ["Placeholder"]
 
 class Top(Predicate):
-    def __init__(self):
-        pass
-
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         return True
 
 class Bottom(Predicate):
-    def __init__(self):
-        pass
-
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         return False
 
 class Equal(Predicate):
@@ -66,12 +82,13 @@ class Equal(Predicate):
     (assert (= (get-varname x) (get-varname y)))
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, *args):
         # TODO: ensure that x and y are both of the right type (Variable)
+        super(self, Predicate).__init__(self, *args)
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         # TODO: Can't find z3 'equals'
         return True
 
@@ -87,7 +104,7 @@ class Labeled(Predicate):
         # TODO: ensure that x is of the right type (Variable)
         self.x = x
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         # TODO.
         return True
 
@@ -102,7 +119,7 @@ class PreParent(object):
     def __init__(self, x, y):
         pass
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class PostParent(object):
@@ -119,7 +136,7 @@ class PostParent(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class DoParent(object):
@@ -134,7 +151,7 @@ class DoParent(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class PreLink(object):
@@ -149,7 +166,7 @@ class PreLink(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class PostLink(object):
@@ -164,7 +181,7 @@ class PostLink(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class DoLink(object):
@@ -179,7 +196,7 @@ class DoLink(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class DoUnlink(object):
@@ -194,7 +211,7 @@ class DoUnlink(object):
         self.x = x
         self.y = y
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class PreHas(object):
@@ -207,7 +224,7 @@ class PreHas(object):
         # TODO: ensure that x has the right type (Variable)
         self.x = x
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class PostHas(object):
@@ -220,7 +237,7 @@ class PostHas(object):
         # TODO: ensure that x has the right type (Variable)
         self.x = x
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass
 
 class Add(object):
@@ -233,5 +250,5 @@ class Add(object):
         # TODO: ensure that x has the right type (Variable)
         self.x = x
 
-    def get_predicate(self, interpretation):
+    def get_predicate(self):
         pass

@@ -86,3 +86,13 @@ class Model(object):
         self.pregraph = Pregraph()
         self.action = Action()
         self.postgraph = Postgraph(self.pregraph, self.action)
+
+
+    def add_assertions(self, solver):
+        """Add, to some z3 solver, the necessary assertions to create
+        an instance of this model.
+
+        For now, the only such assertions needed are in the postgraph."""
+
+        for assertion in self.postgraph.assertions:
+            solver.add(assertion)
