@@ -3,11 +3,7 @@ Krivine - using the Python bindings for Z3.
 """
 
 from z3 import *
-
-# Helper function not defined by Z3.
-def Iff(a, b):
-    return Not(Xor(a, b))
-
+from z3_helpers import *
 
 # Identifier is a datatype representing a vertex or node in a Kappa graph.
 Identifier = Datatype('Identifier')
