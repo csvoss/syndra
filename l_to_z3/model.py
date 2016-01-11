@@ -7,7 +7,6 @@ from z3_helpers import *
 
 # Identifier is a datatype representing a vertex or node in a Kappa graph.
 Identifier = Datatype('Identifier')
-Identifier.declare('none')
 Identifier.declare('node', ('label', IntSort()))
 Identifier = Identifier.create()
 
@@ -48,32 +47,36 @@ class Postgraph(object):
         # Constrain the postgraph's nodes, links, and parent-child relationships
         # appropriately, according to what the graph and action contain.
         i = Const('i', Identifier)
-        engine.z3_assert(ForAll(Const('i', Identifier),
-                                Iff(self.has(i),
-                                    Or(And(graph.has(i), Not(action.has(AtomicAction.rem_action(i)))),
-                                       action.has(AtomicAction.add_action(i))))))
-        engine.z3_assert(ForAll([Const('a', Identifier), Const('b', Identifier)],
-            Iff(self.links(a, b),
-                Or(
-                    And(
+        j = Const('j', Identifier)
+
+        self.assertions = [
+            ForAll(i,
+                    Iff(self.has(i),
+                        Or(And(graph.has(i), Not(action.has(AtomicAction.rem_action(i)))),
+                           action.has(AtomicAction.add_action(i))))),
+            ForAll([i, j],
+                Iff(self.links(i, j),
+                    Or(
                         And(
-                            graph.links(a, b),
-                            Not(action.has(AtomicAction.unlink_action(a, b)))),
+                            And(
+                                graph.links(i, j),
+                                Not(action.has(AtomicAction.unlink_action(i, j)))),
+                            And(
+                                Not(action.has(AtomicAction.rem_action(i))),
+                                Not(action.has(AtomicAction.rem_action(j))))),
+                        action.has(AtomicAction.link_action(i, j))))),
+            ForAll([i, j],
+                Iff(self.parents(i, j),
+                    Or(
                         And(
-                            Not(action.has(AtomicAction.rem_action(a))),
-                            Not(action.has(AtomicAction.rem_action(b))))),
-                    action.has(AtomicAction.link_action(a, b))))))
-        engine.z3_assert(ForAll([Const('a', Identifier), Const('b', Identifier)],
-            Iff(self.parents(a, b),
-                Or(
-                    And(
-                        And(
-                            graph.parents(a, b),
-                            Not(action.has(AtomicAction.unparent_action(a, b)))),
-                        And(
-                            Not(action.has(AtomicAction.rem_action(a))),
-                            Not(action.has(AtomicAction.rem_action(b))))),
-                        action.has(AtomicAction.parent_action(a, b))))))
+                            And(
+                                graph.parents(i, j),
+                                Not(action.has(AtomicAction.unparent_action(i, j)))),
+                            And(
+                                Not(action.has(AtomicAction.rem_action(i))),
+                                Not(action.has(AtomicAction.rem_action(j))))),
+                            action.has(AtomicAction.parent_action(i, j)))))
+        ]
 
 
 # Model is Kappa's <graph, action> pair, but I've included the postgraph
