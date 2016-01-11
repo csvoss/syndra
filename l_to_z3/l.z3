@@ -1,3 +1,7 @@
+; This file contains a Z3 implementation of L. It was used to inform the Python
+; implementation of L using Z3 bindings, which you may find in this directory.
+
+
 ; Predicates from L to constrain a graph by
 ;
 ; Models are pairs of graphs and actions

@@ -1,6 +1,5 @@
 """Z3 implementation of L - the meta-Kappa devised by Adrien Husson and Jean
 Krivine - using the Python bindings for Z3.
-
 """
 
 from z3 import *
@@ -12,15 +11,16 @@ def Iff(a, b):
 
 # Identifier is a datatype representing a vertex or node in a Kappa graph.
 Identifier = Datatype('Identifier')
+Identifier.declare('none')
 Identifier.declare('node', ('label', IntSort()))
 Identifier = Identifier.create()
 
 # Graph, before a rule or action has applied.
-class Pregraph(object):
-    def __init__(self):
-        self.has = Function('has', Identifier, BoolSort())
-        self.links = Function('links', Identifier, Identifier, BoolSort())
-        self.parents = Function('parents', Identifier, Identifier, BoolSort())
+# class Pregraph(object):
+#     def __init__(self):
+#         self.has = Function('has', Identifier, BoolSort())
+#         self.links = Function('links', Identifier, Identifier, BoolSort())
+#         self.parents = Function('parents', Identifier, Identifier, BoolSort())
 
 # Atomic action. An Action is comprised of a set of these.
 AtomicAction = Datatype('AtomicAction')
@@ -54,26 +54,30 @@ class Postgraph(object):
         i = Const('i', Identifier)
         engine.z3_assert(ForAll(Const('i', Identifier),
                                 Iff(self.has(i),
-                                    Or(And(graph.has(i), Not(actions.has(AtomicAction.rem_action(i)))),
+                                    Or(And(graph.has(i), Not(action.has(AtomicAction.rem_action(i)))),
                                        action.has(AtomicAction.add_action(i))))))
-        engine.z3_assert()
-        engine.z3_assert()
-
-(assert (forall ((i Identifier))
-  (iff (or (and (graph-has i) (not (actions-has (rem-action i)))) (actions-has (add-action i)))
-       (graph-2-has i))))
-
-(assert (forall ((a Identifier) (b Identifier))
-  (iff (or (actions-has (link-action a b))
-           (and (and (graph-links a b) (not (actions-has (unlink-action a b))))
-                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
-       (graph-2-links a b))))
-
-(assert (forall ((a Identifier) (b Identifier))
-  (iff (or (actions-has (parent-action a b))
-           (and (and (graph-parents a b) (not (actions-has (unparent-action a b))))
-                (and (not (actions-has (rem-action a))) (not (actions-has (rem-action b))))))
-       (graph-2-parents a b))))
+        engine.z3_assert(ForAll([Const('a', Identifier), Const('b', Identifier)],
+            Iff(self.links(a, b),
+                Or(
+                    And(
+                        And(
+                            graph.links(a, b),
+                            Not(action.has(AtomicAction.unlink_action(a, b)))),
+                        And(
+                            Not(action.has(AtomicAction.rem_action(a))),
+                            Not(action.has(AtomicAction.rem_action(b))))),
+                    action.has(AtomicAction.link_action(a, b))))))
+        engine.z3_assert(ForAll([Const('a', Identifier), Const('b', Identifier)],
+            Iff(self.parents(a, b),
+                Or(
+                    And(
+                        And(
+                            graph.parents(a, b),
+                            Not(action.has(AtomicAction.unparent_action(a, b)))),
+                        And(
+                            Not(action.has(AtomicAction.rem_action(a))),
+                            Not(action.has(AtomicAction.rem_action(b))))),
+                        action.has(AtomicAction.parent_action(a, b))))))
 
 
 # Model is Kappa's <graph, action> pair, but I've included the postgraph
@@ -95,20 +99,51 @@ class Model(object):
 # assertions; then, Predicate can manipulate those formulae into an assertion.
 
 class Predicate(object):
-    """Abstract interface class."""
+    """Parent class which all Predicates will subclass.
+
+    Contains implementations of some z3-related functionality. Subclasses will
+    override get_predicate."""
+
     def __init__(self):
+        self.asserted_yet = False
+
+    def get_predicate(self):
+        raise NotImplementedError()
+
+    def assert_over(self, model):
         pass
-    # More methods TODO.
+        self.asserted_yet = True
+
+    def check_sat(self, model):
+        pass
+
+    def get_model(self, model):
+        pass
+
+    def get_all_models(self, model):
+        pass
+
 
 class Top(Predicate):
-    pass
+    def __init__(self):
+        pass
+
+    def get_predicate(self):
+        pass
 
 class Bottom(Predicate):
-    pass
+    def __init__(self):
+        pass
+
+    def get_predicate(self):
+        pass
 
 class Equal(Predicate):
     def __init__(self, x, y):
-        # ensure that x and y are both
+        # ensure that x and y are both of the right type (Variable)
+        pass
+
+    def get_predicate(self):
         pass
 
 """
