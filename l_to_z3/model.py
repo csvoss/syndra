@@ -5,6 +5,9 @@ Krivine - using the Python bindings for Z3.
 from z3 import *
 from z3_helpers import *
 
+# TODO: Resolve name collision between model as in Kappa model and model as in
+# Z3 model.
+
 # Identifier is a datatype representing a vertex or node in a Kappa graph.
 Identifier = Datatype('Identifier')
 Identifier.declare('node', ('label', IntSort()))
@@ -13,9 +16,9 @@ Identifier = Identifier.create()
 # Graph, before a rule or action has applied.
 class Pregraph(object):
     def __init__(self):
-        self.has = Function('has', Identifier, BoolSort())
-        self.links = Function('links', Identifier, Identifier, BoolSort())
-        self.parents = Function('parents', Identifier, Identifier, BoolSort())
+        self.has = Function('pregraph_has', Identifier, BoolSort())
+        self.links = Function('pregraph_links', Identifier, Identifier, BoolSort())
+        self.parents = Function('pregraph_parents', Identifier, Identifier, BoolSort())
 
 # Atomic action. An Action is comprised of a set of these.
 AtomicAction = Datatype('AtomicAction')
@@ -35,14 +38,14 @@ AtomicAction = AtomicAction.create()
 # Action: a set of atomic actions.
 class Action(object):
     def __init__(self):
-        self.has = Function('has', AtomicAction, BoolSort())
+        self.has = Function('action_has', AtomicAction, BoolSort())
 
 # Graph, after a rule or action has been applied.
 class Postgraph(object):
     def __init__(self, graph, action):
-        self.has = Function('has', Identifier, BoolSort())
-        self.links = Function('links', Identifier, Identifier, BoolSort())
-        self.parents = Function('parents', Identifier, Identifier, BoolSort())
+        self.has = Function('postgraph_has', Identifier, BoolSort())
+        self.links = Function('postgraph_links', Identifier, Identifier, BoolSort())
+        self.parents = Function('postgraph_parents', Identifier, Identifier, BoolSort())
 
         # Constrain the postgraph's nodes, links, and parent-child relationships
         # appropriately, according to what the graph and action contain.
