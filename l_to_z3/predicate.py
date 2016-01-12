@@ -171,7 +171,8 @@ class PostParent(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass
+        return self.model.postgraph.parents(
+            self.interpretation(self.x), self.interpretation(self.y))
 
 class DoParent(Predicate):
     """
@@ -301,7 +302,9 @@ class PredicateAnd(Predicate):
     def __init__(self, p1, p2):
         ensure_predicate(p1)
         ensure_predicate(p2)
-        pass
+
+    def get_predicate(self):
+        return p1.get_predicate() and p2.get_predicate()
 
 
 class PredicateOr(Predicate):
@@ -309,4 +312,6 @@ class PredicateOr(Predicate):
     def __init__(self, p1, p2):
         ensure_predicate(p1)
         ensure_predicate(p2)
-        pass
+
+    def get_predicate(self):
+        return p1.get_predicate() or p2.get_predicate()
