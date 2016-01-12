@@ -151,7 +151,8 @@ class PreParent(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass #TODO
+        return self.model.pregraph.parents(
+            self.interpretation(self.x), self.interpretation(self.y))
 
 class PostParent(Predicate):
     """
@@ -187,7 +188,9 @@ class DoParent(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass
+        return self.model.action.has(
+            AtomicAction.parent_action(
+                self.interpretation(self.x), self.interpretation(self.y)))
 
 class PreLink(Predicate):
     """
@@ -204,8 +207,8 @@ class PreLink(Predicate):
         self.y = y
 
     def get_predicate(self):
-        return self.model.pregraph.links(self.interpretation(self.x),
-                                         self.interpretation(self.y))
+        return self.model.pregraph.links(
+            self.interpretation(self.x), self.interpretation(self.y))
 
 class PostLink(Predicate):
     """
@@ -222,7 +225,8 @@ class PostLink(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass
+        return self.model.postgraph.links(
+            self.interpretation(self.x), self.interpretation(self.y))
 
 class DoLink(Predicate):
     """
@@ -239,7 +243,9 @@ class DoLink(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass
+        return self.model.action.has(
+            AtomicAction.link_action(
+                self.interpretation(self.x), self.interpretation(self.y)))
 
 class DoUnlink(Predicate):
     """
@@ -256,7 +262,9 @@ class DoUnlink(Predicate):
         self.y = y
 
     def get_predicate(self):
-        pass
+        return self.model.action.has(
+            AtomicAction.unlink_action(
+                self.interpretation(self.x), self.interpretation(self.y)))
 
 class PreHas(Predicate):
     """
@@ -270,7 +278,8 @@ class PreHas(Predicate):
         self.x = x
 
     def get_predicate(self):
-        pass
+        return self.model.pregraph.has(
+            self.interpretation(self.x))
 
 class PostHas(Predicate):
     """
@@ -284,7 +293,8 @@ class PostHas(Predicate):
         self.x = x
 
     def get_predicate(self):
-        pass
+        return self.model.postgraph.has(
+            self.interpretation(self.x))
 
 class PredicateAnd(Predicate):
     """`AND` two L predicates together."""
