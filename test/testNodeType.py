@@ -1,6 +1,6 @@
-from NodeType import *
 import unittest
 
+from metakappa.NodeType import *
 
 serine = Residue("Serine")
 tyrosine = Residue("Tyrosine")
