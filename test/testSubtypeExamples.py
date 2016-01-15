@@ -14,7 +14,8 @@ class TestSubtypeExamples(unittest.TestCase):
 
     def test_example_1(self):
         """
-        Reads two statements, one where BRAF is phosphorylated and one where RAF        is phosphorylated. Returns that we can have one or the other, but not
+        Reads two statements, one where BRAF is phosphorylated and one where RAF
+        is phosphorylated. Returns that we can have one or the other, but not
         both.
         """
         example = self.openFile("examples/syndra_example_1.pkl")
@@ -38,7 +39,18 @@ class TestSubtypeExamples(unittest.TestCase):
         # TODO: The advanced stuff
 
     def test_example_3(self):
+        """
+        This example involves unifying not just proteins in the same family,
+        but different levels of knowledge involving phosphorylation.
+        """
+        # TODO: Implement combining Phosphorylation with SerinePhos.
         example = self.openFile("examples/syndra_example_3.pkl")
+        clusters = processStatements(example.statements)
+        # print clusters
+        self.assertEqual(len(clusters), 1)
 
     def test_example_4(self):
+        """
+        This is the really big example.
+        """
         example = self.openFile("examples/syndra_example_4.pkl")

@@ -12,7 +12,7 @@ RAF1_BRAF = ProteinFamily("RAF1_BRAF")
 
 RAF1 = Protein("RAF1", ["RAF", "RAF1_BRAF"])
 ARAF = Protein("ARAF", ["RAF"])
-BRAF = Protein("BRAF", ["RAF"])
+BRAF = Protein("BRAF", ["RAF", "RAF1_BRAF"])
 
 S222 = Site("S222", "Serine")
 
@@ -25,6 +25,7 @@ typeMappings = {
     , "MAP2K1" : MAP2K1
     , "MAP2K2" : MAP2K2
     , "RAF" : RAF
+    , "Raf" : RAF   # TODO: All caps the lookup
     , "RAF1_BRAF" : RAF1_BRAF
     , "RAF1" : RAF1
     , "ARAF" : ARAF

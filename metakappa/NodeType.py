@@ -2,17 +2,22 @@
 
 .. moduleauthor:: Jean Yang <jean_yang@hms.harvard.edu>
 """
-class Agent(object):
+class FactItem(object):
     def __init__(self):
         self.parents = []
         self.name = ""
     def __eq__(self, other):
         return self.name == other.name and self.parents == other.parents
 
+class Agent(FactItem):
+    pass
+
 class ProteinFamily(Agent):
     def __init__(self, name):
         super(ProteinFamily, self).__init__()
         self.name = name
+    def __repr__(self):
+        return "ProteinFamily(" + self.name + ")"
 
 class Protein(ProteinFamily):
     def __init__(self, name, parents):
@@ -20,6 +25,8 @@ class Protein(ProteinFamily):
             super(Protein, self).__init__(parent)
         self.name = name
         self.parents.extend(parents)
+    def __repr__(self):
+        return "Protein(" + self.name + ")"
 
 class Residue(Agent):
     """A residue is an amino acid monomer.
@@ -37,6 +44,15 @@ class Site(Residue):
         super(Site, self).__init__(parent)
         self.name = name
         self.parents.append(parent) # Note that this has to be an amino acid.
+
+class State(FactItem):
+    pass
+class Active(State):
+    pass
+class Phosphorylated(Active):
+    pass 
+class SerinePhosphorylated(Active):
+    pass
 
 def canmerge(name, parents):
     return name=="" or name in parents
