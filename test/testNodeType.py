@@ -1,21 +1,6 @@
-from NodeType import *
 import unittest
 
-
-serine = Residue("Serine")
-tyrosine = Residue("Tyrosine")
-
-MEK = ProteinFamily("MEK")
-MAP2K1 = Protein("MAP2K1", ["MEK"])
-MAP2K2 = Protein("MAP2K2", ["MEK"])
-
-Raf = ProteinFamily("Raf")
-RAF1_BRAF = ProteinFamily("RAF1_BRAF")
-
-RAF1 = Protein("RAF1", ["Raf", "RAF1_BRAF"])
-ARAF = Protein("ARAF", ["Raf"])
-
-S222 = Site("S222", "Serine")
+from metakappa.DomainFacts import *
 
 class TestNodeType(unittest.TestCase):
     def setUp(self):
