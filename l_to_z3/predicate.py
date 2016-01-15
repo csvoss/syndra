@@ -20,6 +20,10 @@ Variable = Datatype('Variable')
 Variable.declare('variable', ('get_varname', IntSort()))
 Variable = Variable.create()
 
+# TODO: Create a better datatype for Variable -- a class
+# that both contains this z3 datatype, and that automatically 
+# does all of the variable naming/numbering things for me.
+
 def z3_accessor(func, item):
     """Apply func and read out the accessed value of a z3 datatype, if the
     value for that accessor was an IntSort().
@@ -54,7 +58,6 @@ class Predicate(object):
         self.solver = Solver()
         self.model = model
         self.interpretation = Function('interpretation', Variable, Identifier)
-
         self._asserted_yet = False
         self._status = None
         self.model.add_assertions(self.solver)
@@ -299,14 +302,17 @@ class PostHas(Predicate):
 class PredicateAnd(Predicate):
     """`AND` two L predicates together."""
     def __init__(self, p1, p2):
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        pass
+    def __init__(self, *preds):
+        for pred in preds:
+            ensure_predicate(pred)
+        return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
+                      preds)
 
 
 class PredicateOr(Predicate):
     """`OR` two L predicates together."""
-    def __init__(self, p1, p2):
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        pass
+    def __init__(self, *preds):
+        for pred in preds:
+            ensure_predicate(pred)
+        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
+                      preds)
