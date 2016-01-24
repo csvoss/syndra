@@ -82,14 +82,19 @@ class Postgraph(object):
         ]
 
 
-# Model is Kappa's <graph, action> pair, but I've included the postgraph
+# This is Kappa's <graph, action> pair, but I've included the postgraph
 # (i.e. the graph after applying the action), too, for convenience.
-class Model(object):
+class GraphActionPair(object):
     def __init__(self):
         self.pregraph = Pregraph()
         self.action = Action()
         self.postgraph = Postgraph(self.pregraph, self.action)
 
+
+# This represents a set of <graph, action> pairs -- our candidate models!
+class Model(object):
+    def __init__(self):
+        self.pairs = ## TODO, Set(GraphActionPair)
 
     def add_assertions(self, solver):
         """Add, to some z3 solver, the necessary assertions to create
