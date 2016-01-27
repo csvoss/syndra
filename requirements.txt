@@ -1,0 +1,9 @@
+networkx
+jsonschema
+pandas
+pysb
+objectpath
+BeautifulSoup
+rdflib
+Cython
+jnius_indra

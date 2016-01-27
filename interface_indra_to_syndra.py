@@ -7,13 +7,11 @@ Run this file to demo INDRA -> Syndra.
 try:
     import rdflib
 except:
-    print "Did you source venv/bin/activate?"
-    raise
+    raise StandardError("Run `source venv/bin/activate` before running this file.")
 try:
     import indra
 except:
-    print "indra must be a module accessible from this file"
-    raise
+    raise StandardError("indra must be a module accessible from this file")
 
 
 def make_statements(text):
