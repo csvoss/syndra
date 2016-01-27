@@ -5,8 +5,11 @@ Krivine - using the Python bindings for Z3.
 from z3 import *
 from z3_helpers import *
 
-# TODO: Resolve name collision between model as in Kappa model and model as in
-# Z3 model.
+# TODO: Make everything in this file a z3 datatype with some helper functions
+# lying around; make nothing a Python class. It's easier to keep them
+# all in order that way.
+
+# Then, it's easier to implement some of the remaining Predicates.
 
 # Identifier is a datatype representing a vertex or node in a Kappa graph.
 Identifier = Datatype('Identifier')
@@ -99,8 +102,15 @@ class GraphActionPair(object):
         for assertion in self.postgraph.assertions:
             solver.add(assertion)
 
+# This represents a set of possible <graph, action> pairs -- a single Kappa
+# chemical system.
+ChemicalSystem = Datatype('ChemicalSystem')
+ChemicalSystem.declare('chemicalsystem', ('pregraph', Pregraph),
+                        ('action', Action), ('postgraph', Postgraph))
+ChemicalSystem = ChemicalSystem.create()
 
-# This represents a set of <graph, action> pairs -- our candidate models!
-class Model(object):
-    def __init__(self):
-        self.pairs = ## TODO, Set(GraphActionPair)
+
+# This represents a set of sets of <graph, action> pairs -- many possible
+# chemical systems that an L statement could represent.
+def new_model():
+    return Function('contains', ChemicalSystem, BoolSort())
