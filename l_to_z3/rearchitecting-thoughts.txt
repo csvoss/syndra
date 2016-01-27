@@ -1,0 +1,13 @@
+Thoughts on rearchitecting these files with my new understanding of L:
+
+Okay, so a Model is no longer a set of graph-action pairs -- it's a set of sets
+of graph-action pairs. Each graph-action pair represents one transition that
+the state-of-the-chemical-system can take at any given time. The sets of sets
+represent sets of possible transitions.
+
+So I need to make a TransitionSystem object of some sort, and _that_'s the thing
+that I find models on, and it consists of sets of graph, action pairs.
+
+Predicate does not undergo any major rearchitecting, the basic predicates
+stay the same. However, I need to implement the [[]] semantics in addition
+to just the [] (atomic) semantics I have now.
