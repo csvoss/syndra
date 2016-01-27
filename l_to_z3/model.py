@@ -90,13 +90,7 @@ class GraphActionPair(object):
         self.action = Action()
         self.postgraph = Postgraph(self.pregraph, self.action)
 
-
-# This represents a set of <graph, action> pairs -- our candidate models!
-class Model(object):
-    def __init__(self):
-        self.pairs = ## TODO, Set(GraphActionPair)
-
-    def add_assertions(self, solver):
+    def initialize(self, solver):
         """Add, to some z3 solver, the necessary assertions to create
         an instance of this model.
 
@@ -104,3 +98,9 @@ class Model(object):
 
         for assertion in self.postgraph.assertions:
             solver.add(assertion)
+
+
+# This represents a set of <graph, action> pairs -- our candidate models!
+class Model(object):
+    def __init__(self):
+        self.pairs = ## TODO, Set(GraphActionPair)

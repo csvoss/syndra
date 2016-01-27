@@ -23,7 +23,7 @@ Variable = Datatype('Variable')
 Variable.declare('variable', ('get_varname', IntSort()))
 Variable = Variable.create()
 
-# TODO: Create a better datatype for Variable -- a class
+# TODO?: Create a better datatype for Variable -- a class
 # that both contains this z3 datatype, and that automatically
 # does all of the variable naming/numbering things for me.
 
@@ -46,24 +46,24 @@ def ensure_variable(thing):
     except (AttributeError, AssertionError):
         raise ValueError("Arguments must be z3 instances of Variable.")
 
-def ensure_predicate(thing):
-    """Raise ValueError if thing is not an instance of Predicate."""
-    if not isinstance(thing, Predicate):
-        raise ValueError("Arguments must be instances of Predicate.")
+def ensure_atomic_predicate(thing):
+    """Raise ValueError if thing is not an instance of AtomicPredicate."""
+    if not isinstance(thing, AtomicPredicate):
+        raise ValueError("Arguments must be instances of AtomicPredicate.")
 
-class Predicate(object):
-    """Parent class which all Predicates will subclass.
+class AtomicPredicate(object):
+    """Parent class which all AtomicPredicates will subclass.
 
     Contains implementations of some z3-related functionality. Subclasses will
     override get_predicate.
     """
-    def __init__(self, model):
+    def __init__(self, graphactionpair):
         self.solver = Solver()
-        self.model = model
+        self.graphactionpair = graphactionpair
         self.interpretation = Function('interpretation', Variable, Identifier)
         self._asserted_yet = False
         self._status = None
-        self.model.add_assertions(self.solver)
+        self.graphactionpair.initialize(self.solver)
 
     def get_predicate(self):
         raise NotImplementedError("Implement get_predicate in subclasses.")
@@ -90,22 +90,15 @@ class Predicate(object):
             print output
         return output
 
-    def get_models(self):
-        if not self._asserted_yet:
-            self._assert_over()
-        # http://stackoverflow.com/questions/13395391/z3-finding-all
-        # TODO: Get all models.
-        return ["Placeholder"]
-
-class Top(Predicate):
+class Top(AtomicPredicate):
     def get_predicate(self):
         return True
 
-class Bottom(Predicate):
+class Bottom(AtomicPredicate):
     def get_predicate(self):
         return False
 
-class Equal(Predicate):
+class Equal(AtomicPredicate):
     """
     ; Equality of variables x and y.
     (declare-const x Variable)
@@ -123,7 +116,7 @@ class Equal(Predicate):
         return (z3_accessor(Variable.get_varname, self.x) ==
                 z3_accessor(Variable.get_varname, self.y))
 
-class Labeled(Predicate):
+class Labeled(AtomicPredicate):
     """
     ; Variable has specific label.
     (declare-const x Variable)
@@ -142,7 +135,7 @@ class Labeled(Predicate):
                 self.label)
 
 
-class PreParent(Predicate):
+class PreParent(AtomicPredicate):
     """
     ; Variable x has child y.
     (declare-const x Variable)
@@ -160,7 +153,7 @@ class PreParent(Predicate):
         return self.model.pregraph.parents(
             self.interpretation(self.x), self.interpretation(self.y))
 
-class PostParent(Predicate):
+class PostParent(AtomicPredicate):
     """
     ; "Bar" of "Variable x has child y", which seems to indicate that x has
     ; child y only in the second graph produced by G combined with A.
@@ -180,7 +173,7 @@ class PostParent(Predicate):
         return self.model.postgraph.parents(
             self.interpretation(self.x), self.interpretation(self.y))
 
-class DoParent(Predicate):
+class DoParent(AtomicPredicate):
     """
     ; "Do" of "Variable x has child y".
     (declare-const x Variable)
@@ -199,7 +192,7 @@ class DoParent(Predicate):
             AtomicAction.parent_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
-class PreLink(Predicate):
+class PreLink(AtomicPredicate):
     """
     ; Variable x links to variable y.
     (declare-const x Variable)
@@ -217,7 +210,7 @@ class PreLink(Predicate):
         return self.model.pregraph.links(
             self.interpretation(self.x), self.interpretation(self.y))
 
-class PostLink(Predicate):
+class PostLink(AtomicPredicate):
     """
     ; "Bar" of Variable x links to variable y; Again a postcondition.
     (declare-const x Variable)
@@ -235,7 +228,7 @@ class PostLink(Predicate):
         return self.model.postgraph.links(
             self.interpretation(self.x), self.interpretation(self.y))
 
-class DoLink(Predicate):
+class DoLink(AtomicPredicate):
     """
     ; "Do" of "Variable x links to variable y".
     (declare-const x Variable)
@@ -254,7 +247,7 @@ class DoLink(Predicate):
             AtomicAction.link_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
-class DoUnlink(Predicate):
+class DoUnlink(AtomicPredicate):
     """
     ; "Do" of "Variable x unlinks to variable y".
     (declare-const x Variable)
@@ -273,7 +266,7 @@ class DoUnlink(Predicate):
             AtomicAction.unlink_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
-class PreHas(Predicate):
+class PreHas(AtomicPredicate):
     """
     ; "Has" of variable x.
     (declare-const x Variable)
@@ -288,7 +281,7 @@ class PreHas(Predicate):
         return self.model.pregraph.has(
             self.interpretation(self.x))
 
-class PostHas(Predicate):
+class PostHas(AtomicPredicate):
     """
     ; "Bar" of "Has" of x. Again, a postcondition.
     (declare-const x Variable)
@@ -303,31 +296,9 @@ class PostHas(Predicate):
         return self.model.postgraph.has(
             self.interpretation(self.x))
 
-class PredicateAnd(Predicate):
-    """`AND` two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateAnd, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
 
-    def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
-        return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
-                      self.preds)
+class Add(AtomicPredicate):
+    pass # TODO
 
-
-class PredicateOr(Predicate):
-    """`OR` two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateOr, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
-
-    def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
-        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
-                      self.preds)
+class Rem(AtomicPredicate):
+    pass # TODO
