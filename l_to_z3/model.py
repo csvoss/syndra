@@ -14,9 +14,9 @@ Node = Node.create()
 # Graph, before a rule or action has applied.
 Pregraph = Datatype('Pregraph')
 Pregraph.declare('pregraph',
-    ('pregraph_has', Function('f1', Node, BoolSort())),
-    ('pregraph_links', Function('f2', Node, Node, BoolSort())),
-    ('pregraph_parents', Function('f3', Node, Node, BoolSort())))
+    ('has', Function('f1', Node, BoolSort())),
+    ('links', Function('f2', Node, Node, BoolSort())),
+    ('parents', Function('f3', Node, Node, BoolSort())))
 Pregraph = Pregraph.create()
 
 # Atomic action. An Action is comprised of a set of these.
@@ -40,9 +40,9 @@ Action = Function('action_has', AtomicAction, BoolSort())
 # Graph, after a rule or action has been applied.
 Postgraph = Datatype('Postgraph')
 Postgraph.declare('postgraph',
-    ('postgraph_has', Function('f4', Node, BoolSort())),
-    ('postgraph_links', Function('f5', Node, Node, BoolSort())),
-    ('postgraph_parents', Function('f6', Node, Node, BoolSort())))
+    ('has', Function('f4', Node, BoolSort())),
+    ('links', Function('f5', Node, Node, BoolSort())),
+    ('parents', Function('f6', Node, Node, BoolSort())))
 Postgraph = Postgraph.create()
 
 def postgraph_constraints(pregraph, action, postgraph):
