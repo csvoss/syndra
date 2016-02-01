@@ -13,9 +13,9 @@ Refer to pg. TODO of the L description.
 
 # pylint: disable=C0103
 
-from z3 import Solver, Datatype, IntSort, Function
+from z3 import Datatype, IntSort, Function
 
-from model import Identifier, Pregraph, AtomicAction, Postgraph, Model
+from model import Node, Pregraph, AtomicAction, Postgraph, Model
 
 DEBUG = False
 
@@ -60,7 +60,7 @@ class AtomicPredicate(object):
     def __init__(self, graphactionpair):
         self.solver = Solver()
         self.graphactionpair = graphactionpair
-        self.interpretation = Function('interpretation', Variable, Identifier)
+        self.interpretation = Function('interpretation', Variable, Node)
         self._asserted_yet = False
         self._status = None
         self.graphactionpair.initialize(self.solver)
@@ -131,7 +131,7 @@ class Labeled(AtomicPredicate):
 
 
     def get_predicate(self):
-        return (z3_accessor(Identifier.label, self.interpretation(self.x)) ==
+        return (z3_accessor(Node.label, self.interpretation(self.x)) ==
                 self.label)
 
 

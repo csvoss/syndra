@@ -6,6 +6,10 @@ Refer to pg. TODO of the L description.
 """
 
 import atomic_predicate
+from atomic_redicate import Variable
+from model import Node
+
+DEBUG = False
 
 def ensure_predicate(thing):
     """Raise ValueError if thing is not an instance of Predicate."""
@@ -16,8 +20,9 @@ def ensure_predicate(thing):
 class Predicate(object):
     def __init__(self, model):
         self.solver = Solver()
+        raise StandardError("Fix the thing with only instantiating one Solver")
         self.model = model
-        self.interpretation = Function('interpretation', Variable, Identifier)
+        self.interpretation = Function('interpretation', Variable, Node)
         self._asserted_yet = False
         self._status = None
         self.model.initialize(self.solver)

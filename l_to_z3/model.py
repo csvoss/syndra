@@ -11,10 +11,10 @@ from z3_helpers import *
 
 # Then, it's easier to implement some of the remaining Predicates.
 
-# Identifier is a datatype representing a vertex or node in a Kappa graph.
-Identifier = Datatype('Identifier')
-Identifier.declare('node', ('label', IntSort()))
-Identifier = Identifier.create()
+# Node is a datatype representing a vertex or node in a Kappa graph.
+Node = Datatype('Node')
+Node.declare('node', ('label', IntSort()))
+Node = Node.create()
 
 # Graph, before a rule or action has applied.
 class Pregraph(object):
@@ -26,16 +26,16 @@ class Pregraph(object):
 # Atomic action. An Action is comprised of a set of these.
 AtomicAction = Datatype('AtomicAction')
 AtomicAction.declare('id_action')
-AtomicAction.declare('add_action', ('added', Identifier))
-AtomicAction.declare('rem_action', ('removed', Identifier))
+AtomicAction.declare('add_action', ('added', Node))
+AtomicAction.declare('rem_action', ('removed', Node))
 AtomicAction.declare('link_action',
-    ('link1', Identifier), ('link2', Identifier))
+    ('link1', Node), ('link2', Node))
 AtomicAction.declare('unlink_action',
-    ('unlink1', Identifier), ('unlink2', Identifier))
+    ('unlink1', Node), ('unlink2', Node))
 AtomicAction.declare('parent_action',
-    ('parent1', Identifier), ('parent2', Identifier))
+    ('parent1', Node), ('parent2', Node))
 AtomicAction.declare('unparent_action',
-    ('unparent1', Identifier), ('unparent2', Identifier))
+    ('unparent1', Node), ('unparent2', Node))
 AtomicAction = AtomicAction.create()
 
 # Action: a set of atomic actions.
@@ -46,14 +46,14 @@ class Action(object):
 # Graph, after a rule or action has been applied.
 class Postgraph(object):
     def __init__(self, graph, action):
-        self.has = Function('postgraph_has', Identifier, BoolSort())
-        self.links = Function('postgraph_links', Identifier, Identifier, BoolSort())
-        self.parents = Function('postgraph_parents', Identifier, Identifier, BoolSort())
+        self.has = Function('postgraph_has', Node, BoolSort())
+        self.links = Function('postgraph_links', Node, Node, BoolSort())
+        self.parents = Function('postgraph_parents', Node, Node, BoolSort())
 
         # Constrain the postgraph's nodes, links, and parent-child relationships
         # appropriately, according to what the graph and action contain.
-        i = Const('i', Identifier)
-        j = Const('j', Identifier)
+        i = Const('i', Node)
+        j = Const('j', Node)
 
         self.assertions = [
             ForAll(i,
