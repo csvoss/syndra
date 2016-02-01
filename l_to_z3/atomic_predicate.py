@@ -8,13 +8,14 @@ Z3. This is one abstraction layer higher than the above Z3 definitions are.
 Probably the subclasses should only return Z3 formulae, not make any assertions;
 then, Predicate can manipulate those formulae into an assertion.
 
-Refer to pg. TODO of the L description.
+Refer to pg. 7 of the L description.
 """
 
 # pylint: disable=C0103
 
 from z3 import Datatype, IntSort, Function
 
+import model
 from model import Node, Pregraph, AtomicAction, Postgraph, Model
 
 DEBUG = False
@@ -22,10 +23,6 @@ DEBUG = False
 Variable = Datatype('Variable')
 Variable.declare('variable', ('get_varname', IntSort()))
 Variable = Variable.create()
-
-# TODO?: Create a better datatype for Variable -- a class
-# that both contains this z3 datatype, and that automatically
-# does all of the variable naming/numbering things for me.
 
 def z3_accessor(func, item):
     """Apply func and read out the accessed value of a z3 datatype, if the
@@ -57,24 +54,32 @@ class AtomicPredicate(object):
     Contains implementations of some z3-related functionality. Subclasses will
     override get_predicate.
     """
-    def __init__(self, graphactionpair):
-        self.solver = Solver()
-        self.graphactionpair = graphactionpair
+    def __init__(self, pregraph, action, postgraph):
+        self.pregraph = pregraph
+        self.action = action
+        self.postgraph = postgraph
         self.interpretation = Function('interpretation', Variable, Node)
         self._asserted_yet = False
         self._status = None
-        self.graphactionpair.initialize(self.solver)
+        self._model = None
 
-    def get_predicate(self):
+    def get_predicate():
         raise NotImplementedError("Implement get_predicate in subclasses.")
 
     def _assert_over(self):
-        self.solver.add(self.get_predicate())
-        self._status = self.solver.check()
-
+        """Run Z3 on this predicate."""
+        solver.push()
+        for assertion in model.postgraph_constraints(self.pregraph, self.action,
+                                                     self.postgraph):
+            solver.add(assertion)
+        solver.add(self.get_predicate())
+        self._status = solver.check()
         self._asserted_yet = True
+        self._model = solver.model()
+        solver.pop()
 
     def check_sat(self):
+        """Return True or False if the predicate is satisfiable."""
         if not self._asserted_yet:
             self._assert_over()
         if DEBUG:
@@ -85,17 +90,17 @@ class AtomicPredicate(object):
         """Raises Z3Exception if the model is not available."""
         if not self._asserted_yet:
             self._assert_over()
-        output = self.solver.model()
+        output = self._model
         if DEBUG:
             print output
         return output
 
 class Top(AtomicPredicate):
-    def get_predicate(self):
+    def get_predicate():
         return True
 
 class Bottom(AtomicPredicate):
-    def get_predicate(self):
+    def get_predicate():
         return False
 
 class Equal(AtomicPredicate):
@@ -112,7 +117,7 @@ class Equal(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
+    def get_predicate():
         return (z3_accessor(Variable.get_varname, self.x) ==
                 z3_accessor(Variable.get_varname, self.y))
 
@@ -130,7 +135,7 @@ class Labeled(AtomicPredicate):
         self.x = x
 
 
-    def get_predicate(self):
+    def get_predicate():
         return (z3_accessor(Node.label, self.interpretation(self.x)) ==
                 self.label)
 
@@ -149,8 +154,8 @@ class PreParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.pregraph.parents(
+    def get_predicate():
+        return self.pregraph.parents(
             self.interpretation(self.x), self.interpretation(self.y))
 
 class PostParent(AtomicPredicate):
@@ -169,8 +174,8 @@ class PostParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.postgraph.parents(
+    def get_predicate():
+        return self.postgraph.parents(
             self.interpretation(self.x), self.interpretation(self.y))
 
 class DoParent(AtomicPredicate):
@@ -187,8 +192,8 @@ class DoParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.action.has(
+    def get_predicate():
+        return self.action.has(
             AtomicAction.parent_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
@@ -206,8 +211,8 @@ class PreLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.pregraph.links(
+    def get_predicate():
+        return self.pregraph.links(
             self.interpretation(self.x), self.interpretation(self.y))
 
 class PostLink(AtomicPredicate):
@@ -224,8 +229,8 @@ class PostLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.postgraph.links(
+    def get_predicate():
+        return self.postgraph.links(
             self.interpretation(self.x), self.interpretation(self.y))
 
 class DoLink(AtomicPredicate):
@@ -242,8 +247,8 @@ class DoLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.action.has(
+    def get_predicate():
+        return self.action.has(
             AtomicAction.link_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
@@ -261,8 +266,8 @@ class DoUnlink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate(self):
-        return self.model.action.has(
+    def get_predicate():
+        return self.action.has(
             AtomicAction.unlink_action(
                 self.interpretation(self.x), self.interpretation(self.y)))
 
@@ -277,8 +282,8 @@ class PreHas(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate(self):
-        return self.model.pregraph.has(
+    def get_predicate():
+        return self.pregraph.has(
             self.interpretation(self.x))
 
 class PostHas(AtomicPredicate):
@@ -292,13 +297,33 @@ class PostHas(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate(self):
-        return self.model.postgraph.has(
+    def get_predicate():
+        return self.postgraph.has(
             self.interpretation(self.x))
 
 
 class Add(AtomicPredicate):
-    pass # TODO
+    """
+    Add a node.
+    """
+    def __init__(self, x, *args):
+        super(Add, self).__init__(*args)
+        ensure_variable(x)
+        self.x = x
+
+    def get_predicate():
+        return (self.action.has(AtomicAction.add_action(self.interpretation(x)))
+            and not self.pregraph.has(self.interpretation(x)))
 
 class Rem(AtomicPredicate):
-    pass # TODO
+    """
+    Remove a node.
+    """
+    def __init__(self, x, *args):
+        super(Rem, self).__init__(*args)
+        ensure_variable(x)
+        self.x = x
+
+    def get_predicate():
+        return (self.action.has(AtomicAction.rem_action(self.interpretation(x)))
+            and self.pregraph.has(self.interpretation(x)))
