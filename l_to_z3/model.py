@@ -93,7 +93,6 @@ ChemicalSystem.declare('chemicalsystem', ('pregraph', Pregraph),
                         ('action', Action), ('postgraph', Postgraph))
 ChemicalSystem = ChemicalSystem.create()
 
-
 # This represents a set of sets of <graph, action> pairs -- many possible
 # chemical systems that an L statement could represent.
 ChemicalSystemSet = Function('possible_system', ChemicalSystem, BoolSort())
