@@ -25,10 +25,10 @@ class Predicate(atomic_predicate.AtomicPredicate):
     # should take in a ChemicalSystemSet to quantify over
 
 
-class PredicateAnd(Predicate):
+class And(Predicate):
     """`AND` two L predicates together."""
     def __init__(self, p1, p2, *args):
-        super(PredicateAnd, self).__init__(*args)
+        super(And, self).__init__(*args)
         ensure_predicate(p1)
         ensure_predicate(p2)
         self.preds = [p1, p2]
@@ -40,10 +40,10 @@ class PredicateAnd(Predicate):
                       self.preds)
 
 
-class PredicateOr(Predicate):
+class Or(Predicate):
     """`OR` two L predicates together."""
     def __init__(self, p1, p2, *args):
-        super(PredicateOr, self).__init__(*args)
+        super(Or, self).__init__(*args)
         ensure_predicate(p1)
         ensure_predicate(p2)
         self.preds = [p1, p2]
@@ -54,6 +54,11 @@ class PredicateOr(Predicate):
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
+
+# TODO: Instead of this PredicateAtomic business, make a kind of wrapper that
+# takes in the AtomicPredicate class and defines a new class which subclasses
+# Predicate. Then, wrap everything from AtomicPredicate in that wrapper, and put
+# it in this namespace.
 
 class PredicateAtomic(Predicate):
     """A predicate that is an atomic predicate."""
@@ -67,10 +72,10 @@ class PredicateAtomic(Predicate):
         return self.pred # TODO: this line is incorrect, the above is correct
 
 
-class PredicateJoin(Predicate):
+class Join(Predicate):
     """`&` two L predicates together."""
     def __init__(self, p1, p2, *args):
-        super(PredicateJoin, self).__init__(*args)
+        super(Join, self).__init__(*args)
         ensure_predicate(p1)
         ensure_predicate(p2)
         self.preds = [p1, p2]
@@ -79,10 +84,10 @@ class PredicateJoin(Predicate):
         pass # TODO
 
 
-class PredicateDontKnow(Predicate):
+class DontKnow(Predicate):
     """`_\/_` ("don't know" operator) two L predicates together."""
     def __init__(self, p1, p2, *args):
-        super(PredicateDontKnow, self).__init__(*args)
+        super(DontKnow, self).__init__(*args)
         ensure_predicate(p1)
         ensure_predicate(p2)
         self.preds = [p1, p2]
@@ -91,10 +96,10 @@ class PredicateDontKnow(Predicate):
         return p1 or p2
 
 
-class PredicateNot(Predicate):
+class Not(Predicate):
     """`NOT` an L predicate."""
     def __init__(self, p, *args):
-        super(PredicateNot, self).__init__(*args)
+        super(Not, self).__init__(*args)
         ensure_predicate(p)
         self.pred = import pdb; pdb.set_trace()
 
@@ -102,9 +107,9 @@ class PredicateNot(Predicate):
         pass # TODO
 
 
-class PredicateForall(Predicate):
+class Forall(Predicate):
     def __init__(self, var, p, *args):
-        super(PredicateForall, self).__init__(*args)
+        super(Forall, self).__init__(*args)
         ensure_predicate(p)
         atomic_predicate.ensure_variable(var)
         self.pred = p
@@ -114,9 +119,9 @@ class PredicateForall(Predicate):
         pass # TODO
 
 
-class PredicateExists(Predicate):
+class Exists(Predicate):
     def __init__(self, var, p, *args):
-        super(PredicateExists, self).__init__(*args)
+        super(Exists, self).__init__(*args)
         ensure_predicate(p)
         atomic_predicate.ensure_variable(x)
         self.pred = p
