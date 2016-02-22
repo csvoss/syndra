@@ -1,7 +1,9 @@
-
 from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent, \
                              PostParent, DoParent, PreLink, PostLink, DoLink, \
                              DoUnlink, PreHas, PostHas, Add, Rem
+
+import solver
+
 class Predicate(object):
     def __init__(self):
         pass # TODO
@@ -11,15 +13,25 @@ class Predicate(object):
         # something that behaves on the surface as such. It might not
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
-        pass # TODO
+        solver.push()
+        solver.add(self.get_predicate())
+        if not solver.check():
+            raise ValueError("Tried to get model of unsatisfiable predicate")
+        output = solver.model()
+        solver.pop()
+        # TODO: Change the form of this output so that it's what
+        # my tests specified.
+        return output
 
     def check_sat(self):
         # returns a boolean
-        pass # TODO
+        solver.push()
+        solver.add(self.get_predicate())
+        output = solver.check()
+        solver.pop()
+        assert output in (True, False)
+        return output
 
-    # TODO: I think that this method is not actually necessary, and that
-    # we would need to do something else
-    # OPEN PROBLEM: How to implement each of these predicates!!!
     def get_predicate(self):
         # implement in subclasses
         # returns a Z3-friendly predicate, combining together AtomicPredicates
