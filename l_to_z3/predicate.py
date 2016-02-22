@@ -1,112 +1,115 @@
-"""
-L predicate, in the double-bracket semantics. This constrains over sets of
-sets of <graph, action> pairs.
+from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent, \
+                             PostParent, DoParent, PreLink, PostLink, DoLink, \
+                             DoUnlink, PreHas, PostHas, Add, Rem
 
-Refer to pg. 8 of the L description.
-"""
+import solver
 
-import atomic_predicate
-from atomic_predicate import Variable
-from model import Node
+class Predicate(object):
+    def __init__(self):
+        pass # TODO
 
-DEBUG = False
+    def get_model(self):
+        # returns a set of sets of <graph, action> pairs, or at the very least
+        # something that behaves on the surface as such. It might not
+        # necessarily be a complete set. Actions should also behave as sets
+        # (sets of atomic actions).
+        solver.push()
+        solver.add(self.get_predicate())
+        if not solver.check():
+            raise ValueError("Tried to get model of unsatisfiable predicate")
+        output = solver.model()
+        solver.pop()
+        # TODO: Change the form of this output so that it's what
+        # my tests specified.
+        return output
+
+    def check_sat(self):
+        # returns a boolean
+        solver.push()
+        solver.add(self.get_predicate())
+        output = solver.check()
+        solver.pop()
+        assert output in (True, False)
+        return output
+
+    def get_predicate(self):
+        # implement in subclasses
+        # returns a Z3-friendly predicate, combining together AtomicPredicates
+        raise NotImplementedError("Implement get_predicate in subclasses.")
 
 def ensure_predicate(thing):
     """Raise ValueError if thing is not an instance of Predicate."""
     if not isinstance(thing, Predicate):
-        raise ValueError("Arguments must be instances of Predicate.")
+        raise ValueError("Argument must be instance of Predicate.")
 
+def ensure_string(thing):
+    """Raise ValueError if thing is not a Python string."""
+    if not isinstance(thing, str):
+        raise ValueError("Argument must be a Python string.")
 
-class Predicate(atomic_predicate.AtomicPredicate):
-    def __init__(self, *args):
-        super(Predicate, self).__init__(*args)
-
-    # TODO: This is still not right; Predicate
-    # should take in a ChemicalSystemSet to quantify over
-
-
-class PredicateAnd(Predicate):
+class And(Predicate):
     """`AND` two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateAnd, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
+    def __init__(self, *preds):
+        super(And, self).__init__(*args)
+        for p in preds:
+            ensure_predicate(p)
+        self.preds = preds
 
     def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
         return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
                       self.preds)
 
 
-class PredicateOr(Predicate):
+class Or(Predicate):
     """`OR` two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateOr, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
+    def __init__(self, *preds):
+        super(Or, self).__init__(*args)
+        for p in preds:
+            ensure_predicate(p)
+        self.preds = preds
 
     def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
-
-class PredicateAtomic(Predicate):
-    """A predicate that is an atomic predicate."""
-    def __init__(self, p, *args):
-        super(PredicateAtomic, self).__init__(*args)
-        atomic_predicate.ensure_atomic_predicate(p)
-        self.pred = p
-
-    def get_predicate(self):
-        # forall m. f(m) implies atomic predicate holds over m.
-        return self.pred # TODO: this line is incorrect, the above is correct
-
-
-class PredicateJoin(Predicate):
+class Join(Predicate):
     """`&` two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateJoin, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
+    def __init__(self, *preds):
+        super(Join, self).__init__(*args)
+        for p in preds:
+            ensure_predicate(p)
+        self.preds = preds
 
     def get_predicate(self):
         pass # TODO
 
-
-class PredicateDontKnow(Predicate):
+class DontKnow(Predicate):
     """`_\/_` ("don't know" operator) two L predicates together."""
-    def __init__(self, p1, p2, *args):
-        super(PredicateDontKnow, self).__init__(*args)
-        ensure_predicate(p1)
-        ensure_predicate(p2)
-        self.preds = [p1, p2]
+    def __init__(self, *preds):
+        super(DontKnow, self).__init__(*args)
+        for p in preds:
+            ensure_predicate(p)
+        self.preds = preds
 
     def get_predicate(self):
-        return p1 or p2
+        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
+                      self.preds)
 
-
-class PredicateNot(Predicate):
+class Not(Predicate):
     """`NOT` an L predicate."""
-    def __init__(self, p, *args):
-        super(PredicateNot, self).__init__(*args)
-        ensure_predicate(p)
-        self.pred = import pdb; pdb.set_trace()
+    def __init__(self, pred):
+        super(Not, self).__init__(*args)
+        ensure_predicate(pred)
+        self.pred = pred
 
     def get_predicate(self):
         pass # TODO
 
-
-class PredicateForall(Predicate):
+class Forall(Predicate):
     def __init__(self, var, p, *args):
-        super(PredicateForall, self).__init__(*args)
+        super(Forall, self).__init__(*args)
         ensure_predicate(p)
-        atomic_predicate.ensure_variable(var)
+        ensure_string(var)
         self.pred = p
         self.var = var
 
@@ -114,13 +117,37 @@ class PredicateForall(Predicate):
         pass # TODO
 
 
-class PredicateExists(Predicate):
+class Exists(Predicate):
     def __init__(self, var, p, *args):
-        super(PredicateExists, self).__init__(*args)
+        super(Exists, self).__init__(*args)
         ensure_predicate(p)
-        atomic_predicate.ensure_variable(x)
+        ensure_string(var)
         self.pred = p
         self.var = var
 
     def get_predicate(self):
         pass # TODO
+
+
+def atomic_predicate_wrapper(atomic_predicate_class):
+    # Modify the interpretation of the atomic_predicate so that it
+    # behaves as a predicate.
+    return NotImplemented
+
+
+# Atomic predicates.
+Top = atomic_predicate_wrapper(Top)
+Bottom = atomic_predicate_wrapper(Bottom)
+Equal = atomic_predicate_wrapper(Equal)
+Labeled = atomic_predicate_wrapper(Labeled)
+PreParent = atomic_predicate_wrapper(PreParent)
+PostParent = atomic_predicate_wrapper(PostParent)
+DoParent = atomic_predicate_wrapper(DoParent)
+PreLink = atomic_predicate_wrapper(PreLink)
+PostLink = atomic_predicate_wrapper(PostLink)
+DoLink = atomic_predicate_wrapper(DoLink)
+DoUnlink = atomic_predicate_wrapper(DoUnlink)
+PreHas = atomic_predicate_wrapper(PreHas)
+PostHas = atomic_predicate_wrapper(PostHas)
+Add = atomic_predicate_wrapper(Add)
+Rem = atomic_predicate_wrapper(Rem)

@@ -1,1 +1,1 @@
-python -m unittest model_test predicate_test
+python -m unittest test_predicate
