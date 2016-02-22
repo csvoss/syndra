@@ -2,6 +2,7 @@
 Global Z3 solver for use by other files.
 """
 
+from contextlib import contextmanager
 from z3 import Solver
 
 global_solver = Solver()
@@ -20,3 +21,14 @@ def model():
 
 def check():
     return global_solver.check()
+
+@contextmanager
+def context():
+    push()
+    yield
+    pop()
+
+def quick_check(assertion):
+    with context():
+        add(assertion)
+        return check()

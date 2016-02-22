@@ -13,24 +13,21 @@ class Predicate(object):
         # something that behaves on the surface as such. It might not
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
-        solver.push()
-        solver.add(self.get_predicate())
-        if not solver.check():
-            raise ValueError("Tried to get model of unsatisfiable predicate")
-        output = solver.model()
-        solver.pop()
-        # TODO: Change the form of this output so that it's what
-        # my tests specified.
-        return output
+        with solver.context():
+            solver.add(self.get_predicate())
+            if not solver.check():
+                raise ValueError("Tried to get model of unsatisfiable predicate")
+            return solver.model()
+            # TODO: Change the form of this output so that it's what
+            # my tests specified: sets, etc.
 
     def check_sat(self):
         # returns a boolean
-        solver.push()
-        solver.add(self.get_predicate())
-        output = solver.check()
-        solver.pop()
-        assert output in (True, False)
-        return output
+        with solver.context():
+            solver.add(self.get_predicate())
+            output = solver.check()
+            assert output in (True, False)
+            return output
 
     def get_predicate(self):
         # implement in subclasses
