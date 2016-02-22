@@ -1,6 +1,6 @@
 
-from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent,
-                             PostParent, DoParent, PreLink, PostLink, DoLink,
+from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent, \
+                             PostParent, DoParent, PreLink, PostLink, DoLink, \
                              DoUnlink, PreHas, PostHas, Add, Rem
 class Predicate(object):
     def __init__(self):
@@ -16,6 +16,14 @@ class Predicate(object):
     def check_sat(self):
         # returns a boolean
         pass # TODO
+
+    # TODO: I think that this method is not actually necessary, and that
+    # we would need to do something else
+    # OPEN PROBLEM: How to implement each of these predicates!!!
+    def get_predicate(self):
+        # implement in subclasses
+        # returns a Z3-friendly predicate, combining together AtomicPredicates
+        raise NotImplementedError("Implement get_predicate in subclasses.")
 
 def ensure_predicate(thing):
     """Raise ValueError if thing is not an instance of Predicate."""
@@ -36,8 +44,6 @@ class And(Predicate):
         self.preds = preds
 
     def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
         return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
                       self.preds)
 
@@ -51,8 +57,6 @@ class Or(Predicate):
         self.preds = preds
 
     def get_predicate(self):
-        for pred in self.preds:
-            ensure_predicate(pred)
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
@@ -76,7 +80,8 @@ class DontKnow(Predicate):
         self.preds = preds
 
     def get_predicate(self):
-        return p1 or p2
+        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
+                      self.preds)
 
 class Not(Predicate):
     """`NOT` an L predicate."""
@@ -112,7 +117,7 @@ class Exists(Predicate):
         pass # TODO
 
 
-def atomic_predicate_wrapper(class):
+def atomic_predicate_wrapper(atomic_predicate_class):
     # Modify the interpretation of the atomic_predicate so that it
     # behaves as a predicate.
     return NotImplemented
