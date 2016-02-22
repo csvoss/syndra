@@ -136,8 +136,8 @@ class Exists(Predicate):
 # Private helper functions.
 
 def _multi_to_binary(preds, classref):
-    assert len(preds) >= 2,
-        "Cannot apply %s to one predicate only" % str(classref)
+    assert (len(preds) >= 2,
+        "Cannot apply %s to one predicate only" % str(classref))
     for p in preds:
         _ensure_predicate(p)
 
@@ -165,6 +165,7 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
             return z3.ForAll([g, a],
                     Iff(f(g, a), self.atomic._assert(g, a)))
 
+    return NewClass
 
 def _ensure_predicate(thing):
     """Raise ValueError if thing is not an instance of Predicate."""
@@ -186,7 +187,7 @@ def Iff(p1, p2):
 for classname in ['Top', 'Bottom', 'Equal', 'Labeled', 'PreParent',
                   'PostParent', 'DoParent', 'PreLink', 'PostLink',
                   'DoLink', 'DoUnlink', 'PreHas', 'PostHas', 'Add', 'Rem']:
-    classref = globals()[classname]
+    classref = getattr(atomic_predicate, classname)
     new_classref = _atomic_predicate_wrapper(classref)
     new_classref.__name__ = classname
     globals()[classname] = new_classref
