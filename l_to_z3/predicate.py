@@ -156,7 +156,7 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
     # Each atomic_predicate implements its own _assert
     class NewClass(Predicate):
         def __init__(self, *args):
-            self.atomic = atomic_predicate_classref.__init__(*args)
+            self.atomic = atomic_predicate_classref(*args)
 
         def _assert(self, f):
             # f is a function from g,a to bool
