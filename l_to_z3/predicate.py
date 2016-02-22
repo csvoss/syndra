@@ -98,7 +98,7 @@ class DontKnow(Predicate):
                       self.preds)
 
     def _assert(self, f):
-        pass # TODO
+        return self.p1._assert(f) or self.p2._assert(f)
 
 
 class Not(Predicate):
