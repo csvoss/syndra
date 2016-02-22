@@ -50,8 +50,11 @@ class And(Predicate):
         return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
                       self.preds)
 
-    def _assert(self):
-        pass # TODO
+    def _assert(self, f):
+        g = GRAPHDATATYPE('g')
+        a = ACTIONDATATYPE('a')
+        return z3.ForAll([g, a],
+                Iff(f(g, a), self.p1._assert(g, a) and self.p2._assert(g, a)))
 
 
 class Or(Predicate):
@@ -64,8 +67,11 @@ class Or(Predicate):
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
-    def _assert(self):
-        pass # TODO
+    def _assert(self, f):
+        g = GRAPHDATATYPE('g')
+        a = ACTIONDATATYPE('a')
+        return z3.ForAll([g, a],
+                Iff(f(g, a), self.p1._assert(g, a) or self.p2._assert(g, a)))
 
 
 class Join(Predicate):
@@ -77,7 +83,7 @@ class Join(Predicate):
         assert False, "This method is obsolete; delete it soon"
         pass # TODO
 
-    def _assert(self):
+    def _assert(self, f):
         pass # TODO
 
 
@@ -91,7 +97,7 @@ class DontKnow(Predicate):
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
-    def _assert(self):
+    def _assert(self, f):
         pass # TODO
 
 
@@ -100,7 +106,7 @@ class Not(Predicate):
     def __init__(self, pred):
         self.p1, self.p2 = _multi_to_binary(preds, Not)
 
-    def _assert(self):
+    def _assert(self, f):
         pass # TODO
 
 
@@ -111,7 +117,7 @@ class Forall(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self):
+    def _assert(self, f):
         pass # TODO
 
 
@@ -122,7 +128,7 @@ class Exists(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self):
+    def _assert(self, f):
         pass # TODO
 
 
@@ -155,13 +161,9 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
         def _assert(self, f):
             # f is a function from g,a to bool
             g = GRAPHDATATYPE('g')
-            g = ACTIONDATATYPE('g')
-            pred = z3.ForAll([g, a],
-                    And(
-                        Implies(f(g, a), self.atomic._assert(g, a)),
-                        Implies(self.atomic._assert(g, a), f(g, a))
-                    )
-                )
+            a = ACTIONDATATYPE('a')
+            return z3.ForAll([g, a],
+                    Iff(f(g, a), self.atomic._assert(g, a)))
 
 
 def _ensure_predicate(thing):
@@ -175,7 +177,8 @@ def _ensure_string(thing):
     if not isinstance(thing, str):
         raise ValueError("Argument must be a Python string.")
 
-
+def Iff(p1, p2):
+    return And(Implies(p1, p2), Implies(p2, p1))
 
 # Atomic predicates. This sets the value of a bunch of variables, e.g. Top and
 # Add, in this namespace.
