@@ -132,10 +132,15 @@ class DontKnow(Predicate):
 class Not(Predicate):
     """`NOT` an L predicate."""
     def __init__(self, pred):
-        self.p1, self.p2 = _multi_to_binary(preds, Not)
+        self.pred = pred
 
     def _assert(self, f):
-        pass # TODO
+        g = GRAPHDATATYPE('g')
+        a = ACTIONDATATYPE('a')
+        s = SETOFPAIRSDATATYPE('s')
+        return z3.Exists([s], z3.ForAll([g, a],
+                And(self.pred._assert(s),
+                    Iff(f(g, a), not s(g, a)))))
 
 
 class Forall(Predicate):
