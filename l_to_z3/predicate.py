@@ -53,8 +53,11 @@ class And(Predicate):
     def _assert(self, f):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
-        return z3.ForAll([g, a],
-                Iff(f(g, a), self.p1._assert(g, a) and self.p2._assert(g, a)))
+        s = SETOFPAIRSDATATYPE('s')
+        t = SETOFPAIRSDATATYPE('t')
+        return z3.ForAll([g, a], z3.Exists([s, t],
+                And(self.p1._assert(s), self.p2._assert(t),
+                    Iff(f(g, a), s(g, a) and t(g, a)))))
 
 
 class Or(Predicate):
@@ -70,8 +73,11 @@ class Or(Predicate):
     def _assert(self, f):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
-        return z3.ForAll([g, a],
-                Iff(f(g, a), self.p1._assert(g, a) or self.p2._assert(g, a)))
+        s = SETOFPAIRSDATATYPE('s')
+        t = SETOFPAIRSDATATYPE('t')
+        return z3.ForAll([g, a], z3.Exists([s, t],
+                And(self.p1._assert(s), self.p2._assert(t),
+                    Iff(f(g, a), s(g, a) or t(g, a)))))
 
 
 class Join(Predicate):
