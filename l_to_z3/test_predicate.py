@@ -74,7 +74,8 @@ class PredicateTestCase(TestCase):
         def is_union_from_phi_and_psi(graphaction_set):
             for s in self.phi_model:
                 for t in self.psi_model:
-                    if graphaction_set == s.union(t)
+                    if graphaction_set == s.union(t):
+                        return True
             return False
 
         for graphaction_set in pred.get_model():
@@ -134,7 +135,8 @@ class PredicateTestCase(TestCase):
         def is_intersect_from_phi_and_psi(graphaction_set):
             for s in self.phi_model:
                 for t in self.psi_model:
-                    if graphaction_set == s.intersection(t)
+                    if graphaction_set == s.intersection(t):
+                        return False
             return False
 
         for graphaction_set in pred.get_model():
