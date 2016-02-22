@@ -158,7 +158,9 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
             self.atomic = atomic_predicate_classref.__init__(*args)
 
         def _assert(self, model):
-            # Blocking on: figuring out how model will be arranged
+            # model is a function from g,a to bool
+            # forall <g, a>:
+            #     solver assert f(<g, a>) <=> atomic_predicate(<g, a>)
 
 
 def _ensure_predicate(thing):
