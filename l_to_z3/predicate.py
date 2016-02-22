@@ -1,6 +1,4 @@
-from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent, \
-                             PostParent, DoParent, PreLink, PostLink, DoLink, \
-                             DoUnlink, PreHas, PostHas, Add, Rem
+import atomic_predicate
 
 import solver
 
@@ -45,8 +43,12 @@ class And(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, And)
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
         return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
                       self.preds)
+
+    def _assert(self):
+        pass # TODO
 
 
 class Or(Predicate):
@@ -55,8 +57,12 @@ class Or(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, Or)
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
+
+    def _assert(self):
+        pass # TODO
 
 
 class Join(Predicate):
@@ -65,6 +71,10 @@ class Join(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, Join)
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
+        pass # TODO
+
+    def _assert(self):
         pass # TODO
 
 
@@ -74,8 +84,12 @@ class DontKnow(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, DontKnow)
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
+
+    def _assert(self):
+        pass # TODO
 
 
 class Not(Predicate):
@@ -84,6 +98,10 @@ class Not(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, Not)
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
+        pass # TODO
+
+    def _assert(self):
         pass # TODO
 
 
@@ -95,6 +113,10 @@ class Forall(Predicate):
         self.var = var
 
     def get_predicate(self):
+        assert False, "This method is obsolete; delete it soon"
+        pass # TODO
+
+    def _assert(self):
         pass # TODO
 
 
@@ -105,7 +127,7 @@ class Exists(Predicate):
         self.pred = p
         self.var = var
 
-    def get_predicate(self):
+    def _assert(self):
         pass # TODO
 
 
@@ -130,7 +152,13 @@ def _multi_to_binary(preds, classref):
 def _atomic_predicate_wrapper(atomic_predicate_classref):
     # Modify the interpretation of the atomic_predicate so that it
     # behaves as a predicate.
-    return NotImplemented
+    # Each atomic_predicate implements its own _assert_atomic
+    class NewClass(Predicate):
+        def __init__(self, *args):
+            self.atomic = atomic_predicate_classref.__init__(*args)
+
+        def _assert(self, model):
+            # Blocking on: figuring out how model will be arranged
 
 
 def _ensure_predicate(thing):
@@ -146,20 +174,13 @@ def _ensure_string(thing):
 
 
 
-# Atomic predicates.
+# Atomic predicates. This sets the value of a bunch of variables, e.g. Top and
+# Add, in this namespace.
 
-Top = _atomic_predicate_wrapper(Top)
-Bottom = _atomic_predicate_wrapper(Bottom)
-Equal = _atomic_predicate_wrapper(Equal)
-Labeled = _atomic_predicate_wrapper(Labeled)
-PreParent = _atomic_predicate_wrapper(PreParent)
-PostParent = _atomic_predicate_wrapper(PostParent)
-DoParent = _atomic_predicate_wrapper(DoParent)
-PreLink = _atomic_predicate_wrapper(PreLink)
-PostLink = _atomic_predicate_wrapper(PostLink)
-DoLink = _atomic_predicate_wrapper(DoLink)
-DoUnlink = _atomic_predicate_wrapper(DoUnlink)
-PreHas = _atomic_predicate_wrapper(PreHas)
-PostHas = _atomic_predicate_wrapper(PostHas)
-Add = _atomic_predicate_wrapper(Add)
-Rem = _atomic_predicate_wrapper(Rem)
+for classname in ['Top', 'Bottom', 'Equal', 'Labeled', 'PreParent',
+                  'PostParent', 'DoParent', 'PreLink', 'PostLink',
+                  'DoLink', 'DoUnlink', 'PreHas', 'PostHas', 'Add', 'Rem']:
+    classref = globals()[classname]
+    new_classref = _atomic_predicate_wrapper(classref)
+    new_classref.__name__ = classname
+    globals()[classname] = new_classref
