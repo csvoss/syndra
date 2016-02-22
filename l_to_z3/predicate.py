@@ -1,7 +1,10 @@
 import atomic_predicate
 
 import solver
+import z3
 
+GRAPHDATATYPE = NotImplemented
+ACTIONDATATYPE = NotImplemented
 
 
 # Predicate and its subclasses.
@@ -97,10 +100,6 @@ class Not(Predicate):
     def __init__(self, pred):
         self.p1, self.p2 = _multi_to_binary(preds, Not)
 
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        pass # TODO
-
     def _assert(self):
         pass # TODO
 
@@ -111,10 +110,6 @@ class Forall(Predicate):
         _ensure_string(var)
         self.pred = p
         self.var = var
-
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        pass # TODO
 
     def _assert(self):
         pass # TODO
@@ -152,15 +147,21 @@ def _multi_to_binary(preds, classref):
 def _atomic_predicate_wrapper(atomic_predicate_classref):
     # Modify the interpretation of the atomic_predicate so that it
     # behaves as a predicate.
-    # Each atomic_predicate implements its own _assert_atomic
+    # Each atomic_predicate implements its own _assert
     class NewClass(Predicate):
         def __init__(self, *args):
             self.atomic = atomic_predicate_classref.__init__(*args)
 
-        def _assert(self, model):
-            # model is a function from g,a to bool
-            # forall <g, a>:
-            #     solver assert f(<g, a>) <=> atomic_predicate(<g, a>)
+        def _assert(self, f):
+            # f is a function from g,a to bool
+            g = GRAPHDATATYPE('g')
+            g = ACTIONDATATYPE('g')
+            pred = z3.ForAll([g, a],
+                    And(
+                        Implies(f(g, a), self.atomic._assert(g, a)),
+                        Implies(self.atomic._assert(g, a), f(g, a))
+                    )
+                )
 
 
 def _ensure_predicate(thing):
