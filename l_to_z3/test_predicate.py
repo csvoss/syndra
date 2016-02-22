@@ -136,7 +136,7 @@ class PredicateTestCase(TestCase):
             for s in self.phi_model:
                 for t in self.psi_model:
                     if graphaction_set == s.intersection(t):
-                        return False
+                        return True
             return False
 
         for graphaction_set in pred.get_model():
