@@ -1,17 +1,21 @@
+
+from atomic_predicate import Top, Bottom, Equal, Labeled, PreParent,
+                             PostParent, DoParent, PreLink, PostLink, DoLink,
+                             DoUnlink, PreHas, PostHas, Add, Rem
 class Predicate(object):
     def __init__(self):
-        pass
+        pass # TODO
 
     def get_model(self):
         # returns a set of sets of <graph, action> pairs, or at the very least
         # something that behaves on the surface as such. It might not
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
-        pass
+        pass # TODO
 
     def check_sat(self):
         # returns a boolean
-        pass
+        pass # TODO
 
 def ensure_predicate(thing):
     """Raise ValueError if thing is not an instance of Predicate."""
@@ -108,9 +112,25 @@ class Exists(Predicate):
         pass # TODO
 
 
-# From atomic_predicate, must import or re-wrap at least the following:
-# Labeled
-# PreParent
-# DoLink
-# Top
-# Bottom
+def atomic_predicate_wrapper(class):
+    # Modify the interpretation of the atomic_predicate so that it
+    # behaves as a predicate.
+    return NotImplemented
+
+
+# Atomic predicates.
+Top = atomic_predicate_wrapper(Top)
+Bottom = atomic_predicate_wrapper(Bottom)
+Equal = atomic_predicate_wrapper(Equal)
+Labeled = atomic_predicate_wrapper(Labeled)
+PreParent = atomic_predicate_wrapper(PreParent)
+PostParent = atomic_predicate_wrapper(PostParent)
+DoParent = atomic_predicate_wrapper(DoParent)
+PreLink = atomic_predicate_wrapper(PreLink)
+PostLink = atomic_predicate_wrapper(PostLink)
+DoLink = atomic_predicate_wrapper(DoLink)
+DoUnlink = atomic_predicate_wrapper(DoUnlink)
+PreHas = atomic_predicate_wrapper(PreHas)
+PostHas = atomic_predicate_wrapper(PostHas)
+Add = atomic_predicate_wrapper(Add)
+Rem = atomic_predicate_wrapper(Rem)
