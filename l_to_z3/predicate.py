@@ -3,9 +3,10 @@ import atomic_predicate
 import solver
 import z3
 
+# Placeholders, TODO.
 GRAPHDATATYPE = NotImplemented
 ACTIONDATATYPE = NotImplemented
-
+SETOFPAIRSDATATYPE = NotImplemented
 
 # Predicate and its subclasses.
 
@@ -55,7 +56,7 @@ class And(Predicate):
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
         t = SETOFPAIRSDATATYPE('t')
-        return z3.ForAll([g, a], z3.Exists([s, t],
+        return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
                     Iff(f(g, a), s(g, a) and t(g, a)))))
 
@@ -75,7 +76,7 @@ class Or(Predicate):
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
         t = SETOFPAIRSDATATYPE('t')
-        return z3.ForAll([g, a], z3.Exists([s, t],
+        return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
                     Iff(f(g, a), s(g, a) or t(g, a)))))
 
@@ -90,7 +91,28 @@ class Join(Predicate):
         pass # TODO
 
     def _assert(self, f):
-        pass # TODO
+        g = GRAPHDATATYPE('g')
+        a = ACTIONDATATYPE('a')
+        s = SETOFPAIRSDATATYPE('s')
+        t = SETOFPAIRSDATATYPE('t')
+
+        def is_plus(alpha, beta, a):
+            # Assert that alpha + beta = a. All of these are Actions.
+            # This is defined in Definition 2 of the L paper, on page 5.
+            # TODO: implement this once you have a clear API for ACTIONDATATYPE.
+
+        def is_join(f, s, t, g, a):
+            # Assert that f behaves, on inputs g and a, like s "joined" with t.
+            # "joined" is the |><| operator.
+            alpha = ACTIONDATATYPE('alpha')
+            beta = ACTIONDATATYPE('beta')
+            return Iff(f(g, a),
+                       z3.Exists(alpha, beta),
+                       And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
+
+        return z3.Exists([s, t], z3.ForAll([g, a],
+                And(self.p1._assert(s), self.p2._assert(t),
+                    is_join(f, s, t, g, a))))
 
 
 class DontKnow(Predicate):
