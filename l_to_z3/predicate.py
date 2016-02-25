@@ -3,10 +3,17 @@ import atomic_predicate
 import solver
 import z3
 
-# Placeholders, TODO.
+
+# Placeholders, TODO: uncomment once model is working.
 GRAPHDATATYPE = NotImplemented
 ACTIONDATATYPE = NotImplemented
 SETOFPAIRSDATATYPE = NotImplemented
+
+
+# from model import Graph, Action, Model
+# GRAPHDATATYPE = Graph
+# ACTIONDATATYPE = Action
+# SETOFPAIRSDATATYPE = Model
 
 # Predicate and its subclasses.
 
@@ -35,7 +42,7 @@ class Predicate(object):
             self._assert(model)
             return solver.check()
 
-    def _assert(self, model):
+    def _assert, interpretation(self, model):
         # model is something representing a set of sets of pairs
         # this is only used privately, in check_sat and/or get_model
         raise NotImplementedError("Implement _assert in subclasses.")
@@ -51,7 +58,7 @@ class And(Predicate):
         return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
                       self.preds)
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
@@ -71,7 +78,7 @@ class Or(Predicate):
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
@@ -90,7 +97,7 @@ class Join(Predicate):
         assert False, "This method is obsolete; delete it soon"
         pass # TODO
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
@@ -126,7 +133,7 @@ class DontKnow(Predicate):
         return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
                       self.preds)
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         return self.p1._assert(f) or self.p2._assert(f)
 
 
@@ -135,7 +142,7 @@ class Not(Predicate):
     def __init__(self, pred):
         self.pred = pred
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         g = GRAPHDATATYPE('g')
         a = ACTIONDATATYPE('a')
         s = SETOFPAIRSDATATYPE('s')
@@ -151,7 +158,7 @@ class Forall(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         pass # TODO
 
 
@@ -162,7 +169,7 @@ class Exists(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, f):
+    def _assert(self, f, interpretation):
         pass # TODO
 
 
@@ -193,7 +200,7 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
         def __init__(self, *args):
             self.atomic = atomic_predicate_classref(*args)
 
-        def _assert(self, f):
+        def _assert(self, f, interpretation):
             # f is a function from g,a to bool
             g = GRAPHDATATYPE('g')
             a = ACTIONDATATYPE('a')

@@ -12,12 +12,15 @@ Node.declare('node', ('label', IntSort()))
 Node = Node.create()
 
 # Graph, before a rule or action has applied.
-Pregraph = Datatype('Pregraph')
-Pregraph.declare('pregraph',
-    ('has', Function('f1', Node, BoolSort())),
-    ('links', Function('f2', Node, Node, BoolSort())),
-    ('parents', Function('f3', Node, Node, BoolSort())))
-Pregraph = Pregraph.create()
+Graph = Datatype('Graph')
+Graph.declare('graph',
+    [
+        ('has', Function('f1', Node, BoolSort())),
+        ('links', Function('f2', Node, Node, BoolSort())),
+        ('parents', Function('f3', Node, Node, BoolSort()))
+    ]
+)
+Graph = Graph.create()
 
 # Atomic action. An Action is comprised of a set of these.
 AtomicAction = Datatype('AtomicAction')
@@ -37,13 +40,6 @@ AtomicAction = AtomicAction.create()
 # Action: a set of atomic actions.
 Action = Function('action_has', AtomicAction, BoolSort())
 
-# Graph, after a rule or action has been applied.
-Postgraph = Datatype('Postgraph')
-Postgraph.declare('postgraph',
-    ('has', Function('f4', Node, BoolSort())),
-    ('links', Function('f5', Node, Node, BoolSort())),
-    ('parents', Function('f6', Node, Node, BoolSort())))
-Postgraph = Postgraph.create()
 
 def postgraph_constraints(pregraph, action, postgraph):
     """
@@ -87,12 +83,12 @@ def postgraph_constraints(pregraph, action, postgraph):
 
 
 # This represents a set of possible <graph, action> pairs -- a single Kappa
-# chemical system.
-ChemicalSystem = Datatype('ChemicalSystem')
-ChemicalSystem.declare('chemicalsystem', ('pregraph', Pregraph),
+# chemical system or model.
+Model = Datatype('Model')
+Model.declare('model', ('pregraph', Pregraph),
                         ('action', Action), ('postgraph', Postgraph))
-ChemicalSystem = ChemicalSystem.create()
+Model = Model.create()
 
 # This represents a set of sets of <graph, action> pairs -- many possible
 # chemical systems that an L statement could represent.
-ChemicalSystemSet = Function('possible_system', ChemicalSystem, BoolSort())
+ModelSet = Function('possible_system', Model, BoolSort())
