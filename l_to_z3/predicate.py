@@ -100,6 +100,7 @@ class Join(Predicate):
             # Assert that alpha + beta = a. All of these are Actions.
             # This is defined in Definition 2 of the L paper, on page 5.
             # TODO: implement this once you have a clear API for ACTIONDATATYPE.
+            pass
 
         def is_join(f, s, t, g, a):
             # Assert that f behaves, on inputs g and a, like s "joined" with t.
@@ -169,8 +170,8 @@ class Exists(Predicate):
 # Private helper functions.
 
 def _multi_to_binary(preds, classref):
-    assert (len(preds) >= 2,
-        "Cannot apply %s to one predicate only" % str(classref))
+    assert len(preds) >= 2, ("Cannot apply %s to one predicate only" %
+                             str(classref))
     for p in preds:
         _ensure_predicate(p)
 
