@@ -11,7 +11,8 @@ Node = Datatype('Node')
 Node.declare('node', ('label', IntSort()))
 Node = Node.create()
 
-# Graph, before a rule or action has applied.
+# Graph, before a rule or action has applied. Merged Pregraph and Postgraph
+# into a single datatype.
 Graph = Datatype('Graph')
 Graph.declare('graph',
     [
@@ -92,3 +93,10 @@ Model = Model.create()
 # This represents a set of sets of <graph, action> pairs -- many possible
 # chemical systems that an L statement could represent.
 ModelSet = Function('possible_system', Model, BoolSort())
+
+
+
+
+Variable = z3.Datatype('Variable')
+Variable.declare('variable', ('get_varname', z3.IntSort()))
+Variable = Variable.create()

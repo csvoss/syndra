@@ -4,16 +4,13 @@ import solver
 import z3
 
 
-# Placeholders, TODO: uncomment once model is working.
-GRAPHDATATYPE = NotImplemented
-ACTIONDATATYPE = NotImplemented
-SETOFPAIRSDATATYPE = NotImplemented
+# from datatypes import Graph, Action, Model, Node, Variable
+# Placeholders, TODO: uncomment the above once model is working.
+Graph = NotImplemented
+Action = NotImplemented
+Model = NotImplemented
 
 
-# from model import Graph, Action, Model
-# GRAPHDATATYPE = Graph
-# ACTIONDATATYPE = Action
-# SETOFPAIRSDATATYPE = Model
 
 # Predicate and its subclasses.
 
@@ -27,7 +24,7 @@ class Predicate(object):
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
         with solver.context():
-            model = NotImplemented
+            model = Model
             self._assert(model)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
@@ -38,11 +35,12 @@ class Predicate(object):
     def check_sat(self):
         # returns a boolean
         with solver.context():
-            model = NotImplemented
-            self._assert(model)
+            model = Model
+            interpretation = z3.Function('interpretation', Variable, Node)
+            self._assert(model, interpretation)
             return solver.check()
 
-    def _assert, interpretation(self, model):
+    def _assert(self, model, interpretation):
         # model is something representing a set of sets of pairs
         # this is only used privately, in check_sat and/or get_model
         raise NotImplementedError("Implement _assert in subclasses.")
@@ -53,16 +51,11 @@ class And(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, And)
 
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        return reduce(lambda x, y: x.get_predicate() and y.get_predicate(),
-                      self.preds)
-
     def _assert(self, f, interpretation):
-        g = GRAPHDATATYPE('g')
-        a = ACTIONDATATYPE('a')
-        s = SETOFPAIRSDATATYPE('s')
-        t = SETOFPAIRSDATATYPE('t')
+        g = Graph('g')
+        a = Action('a')
+        s = Model('s')
+        t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
                     Iff(f(g, a), s(g, a) and t(g, a)))))
@@ -73,16 +66,11 @@ class Or(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Or)
 
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
-                      self.preds)
-
     def _assert(self, f, interpretation):
-        g = GRAPHDATATYPE('g')
-        a = ACTIONDATATYPE('a')
-        s = SETOFPAIRSDATATYPE('s')
-        t = SETOFPAIRSDATATYPE('t')
+        g = Graph('g')
+        a = Action('a')
+        s = Model('s')
+        t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
                     Iff(f(g, a), s(g, a) or t(g, a)))))
@@ -93,27 +81,23 @@ class Join(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Join)
 
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        pass # TODO
-
     def _assert(self, f, interpretation):
-        g = GRAPHDATATYPE('g')
-        a = ACTIONDATATYPE('a')
-        s = SETOFPAIRSDATATYPE('s')
-        t = SETOFPAIRSDATATYPE('t')
+        g = Graph('g')
+        a = Action('a')
+        s = Model('s')
+        t = Model('t')
 
         def is_plus(alpha, beta, a):
             # Assert that alpha + beta = a. All of these are Actions.
             # This is defined in Definition 2 of the L paper, on page 5.
-            # TODO: implement this once you have a clear API for ACTIONDATATYPE.
+            # TODO: implement this once you have a clear API for Action.
             pass
 
         def is_join(f, s, t, g, a):
             # Assert that f behaves, on inputs g and a, like s "joined" with t.
             # "joined" is the |><| operator.
-            alpha = ACTIONDATATYPE('alpha')
-            beta = ACTIONDATATYPE('beta')
+            alpha = Action('alpha')
+            beta = Action('beta')
             return Iff(f(g, a),
                        z3.Exists(alpha, beta),
                        And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
@@ -128,11 +112,6 @@ class DontKnow(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, DontKnow)
 
-    def get_predicate(self):
-        assert False, "This method is obsolete; delete it soon"
-        return reduce(lambda x, y: x.get_predicate() or y.get_predicate(),
-                      self.preds)
-
     def _assert(self, f, interpretation):
         return self.p1._assert(f) or self.p2._assert(f)
 
@@ -143,9 +122,9 @@ class Not(Predicate):
         self.pred = pred
 
     def _assert(self, f, interpretation):
-        g = GRAPHDATATYPE('g')
-        a = ACTIONDATATYPE('a')
-        s = SETOFPAIRSDATATYPE('s')
+        g = Graph('g')
+        a = Action('a')
+        s = Model('s')
         return z3.Exists([s], z3.ForAll([g, a],
                 And(self.pred._assert(s),
                     Iff(f(g, a), not s(g, a)))))
@@ -202,8 +181,8 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
 
         def _assert(self, f, interpretation):
             # f is a function from g,a to bool
-            g = GRAPHDATATYPE('g')
-            a = ACTIONDATATYPE('a')
+            g = Graph('g')
+            a = Action('a')
             return z3.ForAll([g, a],
                     Iff(f(g, a), self.atomic._assert(g, a)))
 

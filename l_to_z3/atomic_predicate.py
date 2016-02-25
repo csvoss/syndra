@@ -88,8 +88,11 @@ class PreParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return model.pregraph.parents(
+        return submodel.pregraph.parents(
             interpretation(self.x), interpretation(self.y))
+
+# TODO: To reduce code size, parametrize PreParent and PostParent
+# over postgraphness or pregraphness
 
 class PostParent(AtomicPredicate):
     """
@@ -108,7 +111,7 @@ class PostParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return model.postgraph.parents(
+        return submodel.postgraph.parents(
             interpretation(self.x), interpretation(self.y))
 
 class DoParent(AtomicPredicate):
