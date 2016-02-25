@@ -179,7 +179,8 @@ def _multi_to_binary(preds, classref):
     if len(preds) == 2:
         p2 = preds[1]
     else:
-        p2 = classref(preds[1:])
+        assert len(preds[1:]) >= 2
+        p2 = classref(*preds[1:])
 
     return (p1, p2)
 
