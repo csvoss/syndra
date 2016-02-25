@@ -11,97 +11,24 @@ then, Predicate can manipulate those formulae into an assertion.
 Refer to pg. 7 of the L description.
 """
 
-# pylint: disable=C0103
-
-from z3 import Datatype, IntSort, Function
-
-import model
-from model import Node, Pregraph, AtomicAction, Postgraph, Model
-
-DEBUG = False
-
-Variable = Datatype('Variable')
-Variable.declare('variable', ('get_varname', IntSort()))
-Variable = Variable.create()
-
-def z3_accessor(func, item):
-    """Apply func and read out the accessed value of a z3 datatype, if the
-    value for that accessor was an IntSort().
-
-    Arguments:
-        func :: a z3 accessor function
-        item :: a z3 datatype instance
-    Returns:
-        :: long - the accessed value
-    """
-    return func(item).children()[0].children()[0].as_long()
-
-def ensure_variable(thing):
-    """Raise ValueError if thing is not an instance of z3 Variable."""
-    try:
-        assert thing.sort() == Variable
-    except (AttributeError, AssertionError):
-        raise ValueError("Arguments must be z3 instances of Variable.")
-
-def ensure_atomic_predicate(thing):
-    """Raise ValueError if thing is not an instance of AtomicPredicate."""
-    if not isinstance(thing, AtomicPredicate):
-        raise ValueError("Arguments must be instances of AtomicPredicate.")
-
 class AtomicPredicate(object):
-    """Parent class which all AtomicPredicates will subclass.
+    def __init__(self):
+        pass
 
-    Contains implementations of some z3-related functionality. Subclasses will
-    override get_predicate.
-    """
-    def __init__(self, pregraph, action, postgraph):
-        self.pregraph = pregraph
-        self.action = action
-        self.postgraph = postgraph
-        self.interpretation = Function('interpretation', Variable, Node)
-        self._asserted_yet = False
-        self._status = None
-        self._model = None
+    def _assert(self, submodel):
+        # submodel: representation of a set of graph, action pairs
+        raise NotImplementedError("Implement _assert in subclasses.")
 
-    def get_predicate():
-        raise NotImplementedError("Implement get_predicate in subclasses.")
-
-    def _assert_over(self):
-        """Run Z3 on this predicate."""
-        solver.push()
-        for assertion in model.postgraph_constraints(self.pregraph, self.action,
-                                                     self.postgraph):
-            solver.add(assertion)
-        solver.add(self.get_predicate())
-        self._status = solver.check()
-        self._asserted_yet = True
-        self._model = solver.model()
-        solver.pop()
-
-    def check_sat(self):
-        """Return True or False if the predicate is satisfiable."""
-        if not self._asserted_yet:
-            self._assert_over()
-        if DEBUG:
-            print self._status
-        return self._status
-
-    def get_model(self):
-        """Raises Z3Exception if the model is not available."""
-        if not self._asserted_yet:
-            self._assert_over()
-        output = self._model
-        if DEBUG:
-            print output
-        return output
 
 class Top(AtomicPredicate):
     def get_predicate():
         return True
 
+
 class Bottom(AtomicPredicate):
     def get_predicate():
         return False
+
 
 class Equal(AtomicPredicate):
     """
@@ -327,3 +254,93 @@ class Rem(AtomicPredicate):
     def get_predicate():
         return (self.action.has(AtomicAction.rem_action(self.interpretation(x)))
             and self.pregraph.has(self.interpretation(x)))
+
+
+"""
+# pylint: disable=C0103
+
+from z3 import Datatype, IntSort, Function
+
+import model
+from model import Node, Pregraph, AtomicAction, Postgraph, Model
+
+DEBUG = False
+
+Variable = Datatype('Variable')
+Variable.declare('variable', ('get_varname', IntSort()))
+Variable = Variable.create()
+"""
+
+
+def z3_accessor(func, item):
+    """Apply func and read out the accessed value of a z3 datatype, if the
+    value for that accessor was an IntSort().
+
+    Arguments:
+        func :: a z3 accessor function
+        item :: a z3 datatype instance
+    Returns:
+        :: long - the accessed value
+    """
+    return func(item).children()[0].children()[0].as_long()
+
+def ensure_variable(thing):
+    """Raise ValueError if thing is not an instance of z3 Variable."""
+    try:
+        assert thing.sort() == Variable
+    except (AttributeError, AssertionError):
+        raise ValueError("Arguments must be z3 instances of Variable.")
+
+def ensure_atomic_predicate(thing):
+    """Raise ValueError if thing is not an instance of AtomicPredicate."""
+    if not isinstance(thing, AtomicPredicate):
+        raise ValueError("Arguments must be instances of AtomicPredicate.")
+
+class AtomicPredicate(object):
+    """Parent class which all AtomicPredicates will subclass.
+
+    Contains implementations of some z3-related functionality. Subclasses will
+    override get_predicate.
+    """
+    def __init__(self):
+        pass
+        # , pregraph, action, postgraph):
+        # self.pregraph = pregraph
+        # self.action = action
+        # self.postgraph = postgraph
+        # self.interpretation = Function('interpretation', Variable, Node)
+        # self._asserted_yet = False
+        # self._status = None
+        # self._model = None
+
+    def get_predicate():
+        raise NotImplementedError("Implement get_predicate in subclasses.")
+
+    def _assert_over(self):
+        """Run Z3 on this predicate."""
+        solver.push()
+        for assertion in model.postgraph_constraints(self.pregraph, self.action,
+                                                     self.postgraph):
+            solver.add(assertion)
+        solver.add(self.get_predicate())
+        self._status = solver.check()
+        self._asserted_yet = True
+        self._model = solver.model()
+        solver.pop()
+
+    def check_sat(self):
+        """Return True or False if the predicate is satisfiable."""
+        if not self._asserted_yet:
+            self._assert_over()
+        if DEBUG:
+            print self._status
+        return self._status
+
+    def get_model(self):
+        """Raises Z3Exception if the model is not available."""
+        if not self._asserted_yet:
+            self._assert_over()
+        output = self._model
+        if DEBUG:
+            print output
+        return output
