@@ -27,12 +27,12 @@ class AtomicPredicate(object):
 
 
 class Top(AtomicPredicate):
-    def get_predicate():
+    def _assert(self, submodel, interpretation):
         return True
 
 
 class Bottom(AtomicPredicate):
-    def get_predicate():
+    def _assert(self, submodel, interpretation):
         return False
 
 
@@ -50,7 +50,7 @@ class Equal(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
+    def _assert(self, submodel, interpretation):
         return (z3_accessor(Variable.get_varname, self.x) ==
                 z3_accessor(Variable.get_varname, self.y))
 
@@ -68,8 +68,8 @@ class Labeled(AtomicPredicate):
         self.x = x
 
 
-    def get_predicate():
-        return (z3_accessor(Node.label, self.interpretation(self.x)) ==
+    def _assert(self, submodel, interpretation):
+        return (z3_accessor(Node.label, interpretation(self.x)) ==
                 self.label)
 
 
@@ -87,9 +87,9 @@ class PreParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.pregraph.parents(
-            self.interpretation(self.x), self.interpretation(self.y))
+    def _assert(self, submodel, interpretation):
+        return model.pregraph.parents(
+            interpretation(self.x), interpretation(self.y))
 
 class PostParent(AtomicPredicate):
     """
@@ -107,9 +107,9 @@ class PostParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.postgraph.parents(
-            self.interpretation(self.x), self.interpretation(self.y))
+    def _assert(self, submodel, interpretation):
+        return model.postgraph.parents(
+            interpretation(self.x), interpretation(self.y))
 
 class DoParent(AtomicPredicate):
     """
@@ -125,10 +125,10 @@ class DoParent(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.action.has(
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
             AtomicAction.parent_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
+                interpretation(self.x), interpretation(self.y)))
 
 class PreLink(AtomicPredicate):
     """
@@ -144,9 +144,9 @@ class PreLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.pregraph.links(
-            self.interpretation(self.x), self.interpretation(self.y))
+    def _assert(self, submodel, interpretation):
+        return model.pregraph.links(
+            interpretation(self.x), interpretation(self.y))
 
 class PostLink(AtomicPredicate):
     """
@@ -162,9 +162,9 @@ class PostLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.postgraph.links(
-            self.interpretation(self.x), self.interpretation(self.y))
+    def _assert(self, submodel, interpretation):
+        return model.postgraph.links(
+            interpretation(self.x), interpretation(self.y))
 
 class DoLink(AtomicPredicate):
     """
@@ -180,10 +180,10 @@ class DoLink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.action.has(
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
             AtomicAction.link_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
+                interpretation(self.x), interpretation(self.y)))
 
 class DoUnlink(AtomicPredicate):
     """
@@ -199,10 +199,10 @@ class DoUnlink(AtomicPredicate):
         self.x = x
         self.y = y
 
-    def get_predicate():
-        return self.action.has(
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
             AtomicAction.unlink_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
+                interpretation(self.x), interpretation(self.y)))
 
 class PreHas(AtomicPredicate):
     """
@@ -215,9 +215,9 @@ class PreHas(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate():
-        return self.pregraph.has(
-            self.interpretation(self.x))
+    def _assert(self, submodel, interpretation):
+        return model.pregraph.has(
+            interpretation(self.x))
 
 class PostHas(AtomicPredicate):
     """
@@ -230,9 +230,9 @@ class PostHas(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate():
-        return self.postgraph.has(
-            self.interpretation(self.x))
+    def _assert(self, submodel, interpretation):
+        return model.postgraph.has(
+            interpretation(self.x))
 
 
 class Add(AtomicPredicate):
@@ -244,9 +244,9 @@ class Add(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate():
-        return (self.action.has(AtomicAction.add_action(self.interpretation(x)))
-            and not self.pregraph.has(self.interpretation(x)))
+    def _assert(self, submodel, interpretation):
+        return (submodel.action.has(AtomicAction.add_action(interpretation(x)))
+            and not model.pregraph.has(interpretation(x)))
 
 class Rem(AtomicPredicate):
     """
@@ -257,9 +257,9 @@ class Rem(AtomicPredicate):
         ensure_variable(x)
         self.x = x
 
-    def get_predicate():
-        return (self.action.has(AtomicAction.rem_action(self.interpretation(x)))
-            and self.pregraph.has(self.interpretation(x)))
+    def _assert(self, submodel, interpretation):
+        return (submodel.action.has(AtomicAction.rem_action(interpretation(x)))
+            and model.pregraph.has(interpretation(x)))
 
 
 
