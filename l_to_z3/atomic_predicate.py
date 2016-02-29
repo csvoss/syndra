@@ -11,18 +11,262 @@ then, Predicate can manipulate those formulae into an assertion.
 Refer to pg. 7 of the L description.
 """
 
-# pylint: disable=C0103
+class AtomicPredicate(object):
+    """Parent class which all AtomicPredicates will subclass.
 
-from z3 import Datatype, IntSort, Function
+    Contains implementations of some z3-related functionality. Subclasses will
+    override get_predicate.
+    """
 
-import model
-from model import Node, Pregraph, AtomicAction, Postgraph, Model
+    def __init__(self):
+        pass
 
-DEBUG = False
+    def _assert(self, submodel, interpretation):
+        # submodel: representation of a set of graph, action pairs
+        raise NotImplementedError("Implement _assert in subclasses.")
 
-Variable = Datatype('Variable')
-Variable.declare('variable', ('get_varname', IntSort()))
-Variable = Variable.create()
+
+class Top(AtomicPredicate):
+    def _assert(self, submodel, interpretation):
+        return True
+
+
+class Bottom(AtomicPredicate):
+    def _assert(self, submodel, interpretation):
+        return False
+
+
+class Equal(AtomicPredicate):
+    """
+    ; Equality of variables x and y.
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (= (get-varname x) (get-varname y)))
+    """
+    def __init__(self, x, y, *args):
+        super(Equal, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return (z3_accessor(Variable.get_varname, self.x) ==
+                z3_accessor(Variable.get_varname, self.y))
+
+class Labeled(AtomicPredicate):
+    """
+    ; Variable has specific label.
+    (declare-const x Variable)
+    (declare-const Label Int)
+    (assert (= (get-label (interpretation x)) Label))
+    """
+    def __init__(self, x, label, *args):
+        super(Labeled, self).__init__(*args)
+        _ensure_string(x)
+        self.label = label
+        self.x = x
+
+
+    def _assert(self, submodel, interpretation):
+        return (z3_accessor(Node.label, interpretation(self.x)) ==
+                self.label)
+
+
+class PreParent(AtomicPredicate):
+    """
+    ; Variable x has child y.
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (graph-parents (interpretation x) (interpretation y)))
+    """
+    def __init__(self, x, y, *args):
+        super(PreParent, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return submodel.pregraph.parents(
+            interpretation(self.x), interpretation(self.y))
+
+# TODO: To reduce code size, parametrize PreParent and PostParent
+# over postgraphness or pregraphness
+
+class PostParent(AtomicPredicate):
+    """
+    ; "Bar" of "Variable x has child y", which seems to indicate that x has
+    ; child y only in the second graph produced by G combined with A.
+    ; This is the postcondition!
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (graph-2-parents (interpretation x) (interpretation y)))
+    """
+    def __init__(self, x, y, *args):
+        super(PostParent, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return submodel.postgraph.parents(
+            interpretation(self.x), interpretation(self.y))
+
+class DoParent(AtomicPredicate):
+    """
+    ; "Do" of "Variable x has child y".
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (actions-has (parent-action (interpretation x) (interpretation y))))
+    """
+    def __init__(self, x, y, *args):
+        super(DoParent, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
+            AtomicAction.parent_action(
+                interpretation(self.x), interpretation(self.y)))
+
+class PreLink(AtomicPredicate):
+    """
+    ; Variable x links to variable y.
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (graph-links (interpretation x) (interpretation y)))
+    """
+    def __init__(self, x, y, *args):
+        super(PreLink, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return model.pregraph.links(
+            interpretation(self.x), interpretation(self.y))
+
+class PostLink(AtomicPredicate):
+    """
+    ; "Bar" of Variable x links to variable y; Again a postcondition.
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (graph-2-links (interpretation x) (interpretation y)))
+    """
+    def __init__(self, x, y, *args):
+        super(PostLink, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return model.postgraph.links(
+            interpretation(self.x), interpretation(self.y))
+
+class DoLink(AtomicPredicate):
+    """
+    ; "Do" of "Variable x links to variable y".
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (actions-has (link-action (interpretation x) (interpretation y))))
+    """
+    def __init__(self, x, y, *args):
+        super(DoLink, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
+            AtomicAction.link_action(
+                interpretation(self.x), interpretation(self.y)))
+
+class DoUnlink(AtomicPredicate):
+    """
+    ; "Do" of "Variable x unlinks to variable y".
+    (declare-const x Variable)
+    (declare-const y Variable)
+    (assert (actions-has (unlink-action (interpretation x) (interpretation y))))
+    """
+    def __init__(self, x, y, *args):
+        super(DoUnlink, self).__init__(*args)
+        _ensure_string(x)
+        _ensure_string(y)
+        self.x = x
+        self.y = y
+
+    def _assert(self, submodel, interpretation):
+        return submodel.action.has(
+            AtomicAction.unlink_action(
+                interpretation(self.x), interpretation(self.y)))
+
+class PreHas(AtomicPredicate):
+    """
+    ; "Has" of variable x.
+    (declare-const x Variable)
+    (assert (graph-has (interpretation x)))
+    """
+    def __init__(self, x, *args):
+        super(PreHas, self).__init__(*args)
+        _ensure_string(x)
+        self.x = x
+
+    def _assert(self, submodel, interpretation):
+        return model.pregraph.has(
+            interpretation(self.x))
+
+class PostHas(AtomicPredicate):
+    """
+    ; "Bar" of "Has" of x. Again, a postcondition.
+    (declare-const x Variable)
+    (assert (graph-2-has (interpretation x)))
+    """
+    def __init__(self, x, *args):
+        super(PostHas, self).__init__(*args)
+        _ensure_string(x)
+        self.x = x
+
+    def _assert(self, submodel, interpretation):
+        return model.postgraph.has(
+            interpretation(self.x))
+
+
+class Add(AtomicPredicate):
+    """
+    Add a node.
+    """
+    def __init__(self, x, *args):
+        super(Add, self).__init__(*args)
+        _ensure_string(x)
+        self.x = x
+
+    def _assert(self, submodel, interpretation):
+        return (submodel.action.has(AtomicAction.add_action(interpretation(x)))
+            and not model.pregraph.has(interpretation(x)))
+
+class Rem(AtomicPredicate):
+    """
+    Remove a node.
+    """
+    def __init__(self, x, *args):
+        super(Rem, self).__init__(*args)
+        _ensure_string(x)
+        self.x = x
+
+    def _assert(self, submodel, interpretation):
+        return (submodel.action.has(AtomicAction.rem_action(interpretation(x)))
+            and model.pregraph.has(interpretation(x)))
+
+
+
+# Helper functions.
 
 def z3_accessor(func, item):
     """Apply func and read out the accessed value of a z3 datatype, if the
@@ -36,294 +280,19 @@ def z3_accessor(func, item):
     """
     return func(item).children()[0].children()[0].as_long()
 
-def ensure_variable(thing):
+def _ensure_variable(thing):
     """Raise ValueError if thing is not an instance of z3 Variable."""
     try:
         assert thing.sort() == Variable
     except (AttributeError, AssertionError):
         raise ValueError("Arguments must be z3 instances of Variable.")
 
-def ensure_atomic_predicate(thing):
+def _ensure_atomic_predicate(thing):
     """Raise ValueError if thing is not an instance of AtomicPredicate."""
     if not isinstance(thing, AtomicPredicate):
         raise ValueError("Arguments must be instances of AtomicPredicate.")
 
-class AtomicPredicate(object):
-    """Parent class which all AtomicPredicates will subclass.
-
-    Contains implementations of some z3-related functionality. Subclasses will
-    override get_predicate.
-    """
-    def __init__(self, pregraph, action, postgraph):
-        self.pregraph = pregraph
-        self.action = action
-        self.postgraph = postgraph
-        self.interpretation = Function('interpretation', Variable, Node)
-        self._asserted_yet = False
-        self._status = None
-        self._model = None
-
-    def get_predicate():
-        raise NotImplementedError("Implement get_predicate in subclasses.")
-
-    def _assert_over(self):
-        """Run Z3 on this predicate."""
-        solver.push()
-        for assertion in model.postgraph_constraints(self.pregraph, self.action,
-                                                     self.postgraph):
-            solver.add(assertion)
-        solver.add(self.get_predicate())
-        self._status = solver.check()
-        self._asserted_yet = True
-        self._model = solver.model()
-        solver.pop()
-
-    def check_sat(self):
-        """Return True or False if the predicate is satisfiable."""
-        if not self._asserted_yet:
-            self._assert_over()
-        if DEBUG:
-            print self._status
-        return self._status
-
-    def get_model(self):
-        """Raises Z3Exception if the model is not available."""
-        if not self._asserted_yet:
-            self._assert_over()
-        output = self._model
-        if DEBUG:
-            print output
-        return output
-
-class Top(AtomicPredicate):
-    def get_predicate():
-        return True
-
-class Bottom(AtomicPredicate):
-    def get_predicate():
-        return False
-
-class Equal(AtomicPredicate):
-    """
-    ; Equality of variables x and y.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (= (get-varname x) (get-varname y)))
-    """
-    def __init__(self, x, y, *args):
-        super(Equal, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return (z3_accessor(Variable.get_varname, self.x) ==
-                z3_accessor(Variable.get_varname, self.y))
-
-class Labeled(AtomicPredicate):
-    """
-    ; Variable has specific label.
-    (declare-const x Variable)
-    (declare-const Label Int)
-    (assert (= (get-label (interpretation x)) Label))
-    """
-    def __init__(self, x, label, *args):
-        super(Labeled, self).__init__(*args)
-        ensure_variable(x)
-        self.label = label
-        self.x = x
-
-
-    def get_predicate():
-        return (z3_accessor(Node.label, self.interpretation(self.x)) ==
-                self.label)
-
-
-class PreParent(AtomicPredicate):
-    """
-    ; Variable x has child y.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-parents (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PreParent, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.pregraph.parents(
-            self.interpretation(self.x), self.interpretation(self.y))
-
-class PostParent(AtomicPredicate):
-    """
-    ; "Bar" of "Variable x has child y", which seems to indicate that x has
-    ; child y only in the second graph produced by G combined with A.
-    ; This is the postcondition!
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-2-parents (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PostParent, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.postgraph.parents(
-            self.interpretation(self.x), self.interpretation(self.y))
-
-class DoParent(AtomicPredicate):
-    """
-    ; "Do" of "Variable x has child y".
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (actions-has (parent-action (interpretation x) (interpretation y))))
-    """
-    def __init__(self, x, y, *args):
-        super(DoParent, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.action.has(
-            AtomicAction.parent_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
-
-class PreLink(AtomicPredicate):
-    """
-    ; Variable x links to variable y.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-links (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PreLink, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.pregraph.links(
-            self.interpretation(self.x), self.interpretation(self.y))
-
-class PostLink(AtomicPredicate):
-    """
-    ; "Bar" of Variable x links to variable y; Again a postcondition.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-2-links (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PostLink, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.postgraph.links(
-            self.interpretation(self.x), self.interpretation(self.y))
-
-class DoLink(AtomicPredicate):
-    """
-    ; "Do" of "Variable x links to variable y".
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (actions-has (link-action (interpretation x) (interpretation y))))
-    """
-    def __init__(self, x, y, *args):
-        super(DoLink, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.action.has(
-            AtomicAction.link_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
-
-class DoUnlink(AtomicPredicate):
-    """
-    ; "Do" of "Variable x unlinks to variable y".
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (actions-has (unlink-action (interpretation x) (interpretation y))))
-    """
-    def __init__(self, x, y, *args):
-        super(DoUnlink, self).__init__(*args)
-        ensure_variable(x)
-        ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def get_predicate():
-        return self.action.has(
-            AtomicAction.unlink_action(
-                self.interpretation(self.x), self.interpretation(self.y)))
-
-class PreHas(AtomicPredicate):
-    """
-    ; "Has" of variable x.
-    (declare-const x Variable)
-    (assert (graph-has (interpretation x)))
-    """
-    def __init__(self, x, *args):
-        super(PreHas, self).__init__(*args)
-        ensure_variable(x)
-        self.x = x
-
-    def get_predicate():
-        return self.pregraph.has(
-            self.interpretation(self.x))
-
-class PostHas(AtomicPredicate):
-    """
-    ; "Bar" of "Has" of x. Again, a postcondition.
-    (declare-const x Variable)
-    (assert (graph-2-has (interpretation x)))
-    """
-    def __init__(self, x, *args):
-        super(PostHas, self).__init__(*args)
-        ensure_variable(x)
-        self.x = x
-
-    def get_predicate():
-        return self.postgraph.has(
-            self.interpretation(self.x))
-
-
-class Add(AtomicPredicate):
-    """
-    Add a node.
-    """
-    def __init__(self, x, *args):
-        super(Add, self).__init__(*args)
-        ensure_variable(x)
-        self.x = x
-
-    def get_predicate():
-        return (self.action.has(AtomicAction.add_action(self.interpretation(x)))
-            and not self.pregraph.has(self.interpretation(x)))
-
-class Rem(AtomicPredicate):
-    """
-    Remove a node.
-    """
-    def __init__(self, x, *args):
-        super(Rem, self).__init__(*args)
-        ensure_variable(x)
-        self.x = x
-
-    def get_predicate():
-        return (self.action.has(AtomicAction.rem_action(self.interpretation(x)))
-            and self.pregraph.has(self.interpretation(x)))
+def _ensure_string(thing):
+    """Raise ValueError if thing is not a Python string."""
+    if not isinstance(thing, str):
+        raise ValueError("Argument must be a Python string.")

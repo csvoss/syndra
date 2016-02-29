@@ -9,14 +9,14 @@ class PredicateTestCase(TestCase):
 
         # Some simple predicates for these tests.
 
-        # This one asserts that some molecule labeled A can bind to some
-        # molecule labeled B via some site labeled C.
+        # This one asserts that some molecule labeled Protein can bind to some
+        # molecule labeled Substrate via some site labeled Site.
         self.phi = predicate.And(
-            predicate.Labeled("VarA", "A"),
-            predicate.Labeled("VarB", "B"),
-            predicate.Labeled("VarC", "C"),
+            predicate.Labeled("VarA", "Protein"),
+            predicate.Labeled("VarB", "Substrate"),
+            predicate.Labeled("VarC", "Site"),
             predicate.PreParent("VarA", "VarC"),
-            predicate.DoLink("VarC", "VarB")
+            predicate.DoLink("VarC", "VarB") # TODO: ask Adrien why Do and Post both exist
         )
 
         # This one asserts that some molecule labeled D can bind directly to
@@ -54,7 +54,8 @@ class PredicateTestCase(TestCase):
         self.assertIsNotNone(model)
         self.assertIsInstance(model, set)
 
-
+    # TODO idea: make a library for converting z3 models to more manageable sets
+    # (since you're going to do something similar manually anyways)
     def test_or(self):
         pred = predicate.Or(self.phi, self.psi)
 
