@@ -68,11 +68,27 @@ def mkClusters(typedStatements):
 
     return resultClusters
 
-def moreGeneral(a, b):
+def moreGeneral((aType, a), (bType, b)):
     """
-    Returns whether a is more general than b.
+    Returns whether a is more general than b. a is more general than b if
+    b is a subtype of a in the sub and enz fields and some other stuff.
+    
+    The structure of the type information is:
+    types = { 'sub': typeMappings[statement.sub.name]
+            , 'enz': typeMappings[statement.enz.name]
+            , 'mod': statement.mod
+            , 'mod_pos': statement.mod_pos }
     """
-    return True
+    def moreGeneralMod(aMod, bMod):
+        if aMod and bMod:
+            return aMod == 'Phosphorylation' and \
+                len(aMod) < len(bMod) 
+    def moreGeneralPos(aPos, bPos):
+        return aPos != None and bPos == None
+    return infamily(bType['sub'], aType['sub']) and \
+        infamily(bType['enz'], aType['enz']) and \
+        moreGeneralMod(aType['mod'], bType['mod']) and \
+        moreGeneralPos(aType['mod_pos'], bType['mod_pos'])
 
 def mkTrees(clusters):
     """

@@ -21,6 +21,7 @@ class TestSubtypeExamples(unittest.TestCase):
         example = self.openFile("examples/syndra_example_1.pkl")
         trees = processStatements(example.statements)
         self.assertEqual(len(trees), 1)
+        self.assertTrue(False)
 
     def test_example_2(self):
         """
