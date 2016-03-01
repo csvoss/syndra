@@ -7,6 +7,14 @@ from z3 import Solver
 
 global_solver = Solver()
 
+class Solver(object):
+
+    def __init__(self):
+        self._solver = Solver()
+        # TODO: Initialize datatypes here
+
+    # TODO: Port the below functions to here as methods
+
 def push():
     """Push solver state."""
     global_solver.push()
