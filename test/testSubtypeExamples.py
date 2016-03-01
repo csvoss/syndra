@@ -19,10 +19,9 @@ class TestSubtypeExamples(unittest.TestCase):
         both.
         """
         example = self.openFile("examples/syndra_example_1.pkl")
-        clusters = processStatements(example.statements)
-        print clusters
-        self.assertEqual(len(clusters), 1)
-        self.assertEqual(len(clusters[0]), 2)
+        trees = processStatements(example.statements)
+        self.assertEqual(len(trees), 1)
+        self.assertTrue(False)
 
     def test_example_2(self):
         """
@@ -32,11 +31,8 @@ class TestSubtypeExamples(unittest.TestCase):
         Advanced: Determines we should be able to have only RAF?
         """
         example = self.openFile("examples/syndra_example_2.pkl")
-        clusters = processStatements(example.statements)
-        print clusters
-        self.assertEqual(len(clusters), 1)
-        self.assertEqual(len(clusters[0]), 3)
-        # TODO: The advanced stuff
+        trees = processStatements(example.statements)
+        self.assertEqual(len(trees), 1)
 
     def test_example_3(self):
         """
@@ -45,9 +41,9 @@ class TestSubtypeExamples(unittest.TestCase):
         """
         # TODO: Implement combining Phosphorylation with SerinePhos.
         example = self.openFile("examples/syndra_example_3.pkl")
-        clusters = processStatements(example.statements)
+        trees = processStatements(example.statements)
         # print clusters
-        self.assertEqual(len(clusters), 1)
+        self.assertEqual(len(trees), 1)
 
     def test_example_4(self):
         """
