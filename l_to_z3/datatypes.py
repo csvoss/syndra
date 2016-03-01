@@ -6,21 +6,32 @@ from z3 import *
 from z3_helpers import *
 
 
+Labelset = ArraySort(IntSort(), BoolSort())
+
 # Node is a datatype representing a vertex or node in a Kappa graph.
 Node = Datatype('Node')
-Node.declare('node', ('label', IntSort()))
+Node.declare('node',
+    ('labels', Labelset),
+    ('name', IntSort()))
 Node = Node.create()
+
+# A datatype for storing a pair of edges
+Edge = Datatype('Edge')
+Edge.declare('edge',
+    ('node1', Node),
+    ('node2', Node))
+Edge = Edge.create()
+
+Nodeset = ArraySort(Node, BoolSort())
+Edgeset = ArraySort(Edge, BoolSort())
 
 # Graph, before a rule or action has applied. Merged Pregraph and Postgraph
 # into a single datatype.
 Graph = Datatype('Graph')
 Graph.declare('graph',
-    [
-        ('has', Function('f1', Node, BoolSort())),
-        ('links', Function('f2', Node, Node, BoolSort())),
-        ('parents', Function('f3', Node, Node, BoolSort()))
-    ]
-)
+    ('has', Nodeset),
+    ('links', Edgeset),
+    ('parents', Edgeset))
 Graph = Graph.create()
 
 # Atomic action. An Action is comprised of a set of these.
@@ -39,7 +50,7 @@ AtomicAction.declare('unparent_action',
 AtomicAction = AtomicAction.create()
 
 # Action: a set of atomic actions.
-Action = Function('action_has', AtomicAction, BoolSort())
+Action = ArraySort(AtomicAction, BoolSort())
 
 
 def postgraph_constraints(pregraph, action, postgraph):
@@ -86,8 +97,8 @@ def postgraph_constraints(pregraph, action, postgraph):
 # This represents a set of possible <graph, action> pairs -- a single Kappa
 # chemical system or model.
 Model = Datatype('Model')
-Model.declare('model', ('pregraph', Pregraph),
-                        ('action', Action), ('postgraph', Postgraph))
+Model.declare('model', ('pregraph', Graph),
+                        ('action', Action), ('postgraph', Graph))
 Model = Model.create()
 
 # This represents a set of sets of <graph, action> pairs -- many possible
@@ -95,8 +106,6 @@ Model = Model.create()
 ModelSet = Function('possible_system', Model, BoolSort())
 
 
-
-
-Variable = z3.Datatype('Variable')
-Variable.declare('variable', ('get_varname', z3.IntSort()))
+Variable = Datatype('Variable')
+Variable.declare('variable', ('get_varname', IntSort()))
 Variable = Variable.create()
