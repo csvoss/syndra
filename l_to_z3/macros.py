@@ -11,11 +11,11 @@ def directly_phosphorylates(name_a, name_b):
     A = new_variable(name_a)
     B = new_variable(name_b)
     return ForAll(A, ForAll(B,
-           Implies(Named(A, name_a), Implies(Named(B, name_b),
-           And(PreLabeled(A, ACTIVE),
-               PreUnlabeled(B, PHOSPHORYLATED),
-               PostLabeled(A, ACTIVE),
-               PostLabeled(B, PHOSPHORYLATED))))))
+               Implies(Named(A, name_a), Implies(Named(B, name_b),
+                   And(PreLabeled(A, ACTIVE),
+                       PreUnlabeled(B, PHOSPHORYLATED),
+                       PostLabeled(A, ACTIVE),
+                       PostLabeled(B, PHOSPHORYLATED))))))
 
 # Macro for Phosphorylated "B" is active
 # forall B. Named("B", B) =>
@@ -23,7 +23,11 @@ def directly_phosphorylates(name_a, name_b):
 #     (PostLabeled(B, "Phosphorylated") => PostLabeled(B, "Active"))
 def phosphorylated_is_active(name_b):
     B = new_variable(name_b)
-    return NotImplemented
+    return ForAll(B, Implies(Named(B, name_b),
+               And(Implies(PreLabeled(B, PHOSPHORYLATED),
+                           PreLabeled(B, ACTIVE)),
+                   Implies(PostLabeled(B, PHOSPHORYLATED),
+                           PostLabeled(B, ACTIVE)))))
 
 # Macro for "A" activates "B"
 # forall A. Named("A", A) => forall B. Named("B", B) =>
@@ -33,8 +37,8 @@ def directly_activates(name_a, name_b):
     A = new_variable(name_a)
     B = new_variable(name_b)
     return ForAll(A, ForAll(B,
-           Implies(Named(A, name_a), Implies(Named(B, name_b),
-           And(PreLabeled(A, ACTIVE),
-               PreUnlabeled(B, ACTIVE),
-               PostLabeled(A, ACTIVE),
-               PostLabeled(B, ACTIVE))))))
+               Implies(Named(A, name_a), Implies(Named(B, name_b),
+                   And(PreLabeled(A, ACTIVE),
+                       PreUnlabeled(B, ACTIVE),
+                       PostLabeled(A, ACTIVE),
+                       PostLabeled(B, ACTIVE))))))
