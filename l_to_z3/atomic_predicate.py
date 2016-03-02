@@ -11,7 +11,7 @@ then, Predicate can manipulate those formulae into an assertion.
 Refer to pg. 7 of the L description.
 """
 
-from datatypes import Variable
+from datatypes import Variable, _ensure_string, _ensure_variable
 
 class AtomicPredicate(object):
     """Parent class which all AtomicPredicates will subclass.
@@ -47,8 +47,8 @@ class Equal(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(Equal, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -62,7 +62,8 @@ class PreLabeled(AtomicPredicate):
     """
     def __init__(self, x, label, *args):
         super(PreLabeled, self).__init__(*args)
-        _ensure_string(x)
+        _ensure_variable(x)
+        _ensure_string(label)
         self.label = label
         self.x = x
 
@@ -75,8 +76,9 @@ class PostLabeled(AtomicPredicate):
     Postgraph variable has specific label.
     """
     def __init__(self, x, label, *args):
-        super(PreLabeled, self).__init__(*args)
-        _ensure_string(x)
+        super(PostLabeled, self).__init__(*args)
+        _ensure_variable(x)
+        _ensure_string(label)
         self.label = label
         self.x = x
 
@@ -89,8 +91,9 @@ class PreUnlabeled(AtomicPredicate):
     Pregraph variable lacks specific label.
     """
     def __init__(self, x, label, *args):
-        super(PreLabeled, self).__init__(*args)
-        _ensure_string(x)
+        super(PreUnlabeled, self).__init__(*args)
+        _ensure_variable(x)
+        _ensure_string(label)
         self.label = label
         self.x = x
 
@@ -103,8 +106,9 @@ class PostUnlabeled(AtomicPredicate):
     Postgraph variable lacks specific label.
     """
     def __init__(self, x, label, *args):
-        super(PreLabeled, self).__init__(*args)
-        _ensure_string(x)
+        super(PostUnlabeled, self).__init__(*args)
+        _ensure_variable(x)
+        _ensure_string(label)
         self.label = label
         self.x = x
 
@@ -121,8 +125,8 @@ class PreParent(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(PreParent, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -158,8 +162,8 @@ class PostParent(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(PostParent, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -176,8 +180,8 @@ class DoParent(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(DoParent, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -195,8 +199,8 @@ class PreLink(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(PreLink, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -213,8 +217,8 @@ class PostLink(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(PostLink, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -231,8 +235,8 @@ class DoLink(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(DoLink, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -250,8 +254,8 @@ class DoUnlink(AtomicPredicate):
     """
     def __init__(self, x, y, *args):
         super(DoUnlink, self).__init__(*args)
-        _ensure_string(x)
-        _ensure_string(y)
+        _ensure_variable(x)
+        _ensure_variable(y)
         self.x = x
         self.y = y
 
@@ -268,7 +272,7 @@ class PreHas(AtomicPredicate):
     """
     def __init__(self, x, *args):
         super(PreHas, self).__init__(*args)
-        _ensure_string(x)
+        _ensure_variable(x)
         self.x = x
 
     def _assert(self, submodel, interpretation):
@@ -283,7 +287,7 @@ class PostHas(AtomicPredicate):
     """
     def __init__(self, x, *args):
         super(PostHas, self).__init__(*args)
-        _ensure_string(x)
+        _ensure_variable(x)
         self.x = x
 
     def _assert(self, submodel, interpretation):
@@ -310,7 +314,7 @@ class Rem(AtomicPredicate):
     """
     def __init__(self, x, *args):
         super(Rem, self).__init__(*args)
-        _ensure_string(x)
+        _ensure_variable(x)
         self.x = x
 
     def _assert(self, submodel, interpretation):
@@ -333,19 +337,10 @@ def z3_accessor(func, item):
     """
     return func(item).children()[0].children()[0].as_long()
 
-def _ensure_variable(thing):
-    """Raise ValueError if thing is not an instance of z3 Variable."""
-    try:
-        assert thing.sort() == Variable
-    except (AttributeError, AssertionError):
-        raise ValueError("Arguments must be z3 instances of Variable.")
+
+
 
 def _ensure_atomic_predicate(thing):
     """Raise ValueError if thing is not an instance of AtomicPredicate."""
     if not isinstance(thing, AtomicPredicate):
-        raise ValueError("Arguments must be instances of AtomicPredicate.")
-
-def _ensure_string(thing):
-    """Raise ValueError if thing is not a Python string."""
-    if not isinstance(thing, str):
-        raise ValueError("Argument must be a Python string.")
+        raise ValueError("Arguments must be instances of AtomicPredicate. Instead, got %s" % repr(thing))

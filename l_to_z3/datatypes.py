@@ -122,3 +122,17 @@ _numbergen = count(start=100, step=1)
 
 def _collision_free_string(prefix=""):
     return prefix + "_" + str(_numbergen.next())
+
+
+def _ensure_variable(thing):
+    """Raise ValueError if thing is not an instance of z3 Variable."""
+    try:
+        assert thing.sort() == Variable
+    except (AttributeError, AssertionError):
+        raise ValueError("Arguments must be z3 instances of Variable. Instead, got %s" % repr(thing))
+
+def _ensure_string(thing):
+    """Raise ValueError if thing is not a Python string."""
+    if not isinstance(thing, str):
+        raise ValueError("Argument must be a Python string. Instead, got %s" % repr(thing))
+

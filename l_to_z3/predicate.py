@@ -3,6 +3,7 @@ import atomic_predicate
 import solver
 import z3
 
+from datatypes import _ensure_variable, _ensure_string
 
 # from datatypes import Graph, Action, Model, Node, Variable
 # Placeholders, TODO: uncomment the above once model is working.
@@ -134,7 +135,7 @@ class Not(Predicate):
 class Forall(Predicate):
     def __init__(self, var, p, *args):
         _ensure_predicate(p)
-        _ensure_string(var)
+        _ensure_variable(var)
         self.pred = p
         self.var = var
 
@@ -145,7 +146,7 @@ class Forall(Predicate):
 class Exists(Predicate):
     def __init__(self, var, p, *args):
         _ensure_predicate(p)
-        _ensure_string(var)
+        _ensure_variable(var)
         self.pred = p
         self.var = var
 
@@ -193,16 +194,7 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
 
     return NewClass
 
-def _ensure_predicate(thing):
-    """Raise ValueError if thing is not an instance of Predicate."""
-    if not isinstance(thing, Predicate):
-        raise ValueError("Argument must be instance of Predicate.")
 
-
-def _ensure_string(thing):
-    """Raise ValueError if thing is not a Python string."""
-    if not isinstance(thing, str):
-        raise ValueError("Argument must be a Python string.")
 
 def Iff(p1, p2):
     return And(Implies(p1, p2), Implies(p2, p1))
@@ -218,3 +210,9 @@ for classname in ['Top', 'Bottom', 'Equal', 'PreLabeled', 'PostLabeled',
     new_classref = _atomic_predicate_wrapper(classref)
     new_classref.__name__ = classname
     globals()[classname] = new_classref
+
+
+def _ensure_predicate(thing):
+    """Raise ValueError if thing is not an instance of Predicate."""
+    if not isinstance(thing, Predicate):
+        raise ValueError("Argument must be instance of Predicate. Instead, got %s" % repr(thing))

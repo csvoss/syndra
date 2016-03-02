@@ -13,7 +13,7 @@ def directly_phosphorylates(name_a, name_b):
     return Forall(A, Forall(B,
            Implies(Named(A, name_a), Implies(Named(B, name_b),
            And(PreLabeled(A, "Active"),
-               Unlabeled(B, "Phosphorylated"),
+               PreUnlabeled(B, "Phosphorylated"),
                PostLabeled(A, "Active"),
                PostLabeled(B, "Phosphorylated"))))))
 
