@@ -5,12 +5,7 @@ import z3
 
 from datatypes import _ensure_variable, _ensure_string
 
-# from datatypes import Graph, Action, Model, Node, Variable
-# Placeholders, TODO: uncomment the above once model is working.
-Graph = NotImplemented
-Action = NotImplemented
-Model = NotImplemented
-
+from datatypes import Graph, Action, Model, Node, Variable
 
 
 # Predicate and its subclasses.
@@ -132,7 +127,7 @@ class Not(Predicate):
                     Iff(f(g, a), not s(g, a)))))
 
 
-class Forall(Predicate):
+class ForAll(Predicate):
     def __init__(self, var, p, *args):
         _ensure_predicate(p)
         _ensure_variable(var)
@@ -140,7 +135,7 @@ class Forall(Predicate):
         self.var = var
 
     def _assert(self, f, interpretation):
-        pass # TODO
+        return z3.ForAll([self.var], self.pred._assert(f))
 
 
 class Exists(Predicate):
@@ -151,7 +146,7 @@ class Exists(Predicate):
         self.var = var
 
     def _assert(self, f, interpretation):
-        pass # TODO
+        return z3.Exists([self.var], self.pred._assert(f))
 
 
 def Implies(predicate1, predicate2):

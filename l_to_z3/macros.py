@@ -1,4 +1,4 @@
-from predicate import PreLabeled, PreUnlabeled, Named, PostLabeled, And, Implies, Forall
+from predicate import PreLabeled, PreUnlabeled, Named, PostLabeled, And, Implies, ForAll
 from datatypes import new_variable
 
 # TODO: something like from labels import Active so that you don't have to use raw strings
@@ -10,7 +10,7 @@ from datatypes import new_variable
 def directly_phosphorylates(name_a, name_b):
     A = new_variable(name_a)
     B = new_variable(name_b)
-    return Forall(A, Forall(B,
+    return ForAll(A, ForAll(B,
            Implies(Named(A, name_a), Implies(Named(B, name_b),
            And(PreLabeled(A, "Active"),
                PreUnlabeled(B, "Phosphorylated"),
