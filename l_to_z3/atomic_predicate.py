@@ -11,6 +11,8 @@ then, Predicate can manipulate those formulae into an assertion.
 Refer to pg. 7 of the L description.
 """
 
+from datatypes import Variable
+
 class AtomicPredicate(object):
     """Parent class which all AtomicPredicates will subclass.
 
@@ -54,24 +56,61 @@ class Equal(AtomicPredicate):
         return (z3_accessor(Variable.get_varname, self.x) ==
                 z3_accessor(Variable.get_varname, self.y))
 
-class Labeled(AtomicPredicate):
+class PreLabeled(AtomicPredicate):
     """
-    ; Variable has specific label.
-    (declare-const x Variable)
-    (declare-const Label Int)
-    (assert (= (get-label (interpretation x)) Label))
+    Pregraph variable has specific label.
     """
     def __init__(self, x, label, *args):
-        super(Labeled, self).__init__(*args)
+        super(PreLabeled, self).__init__(*args)
         _ensure_string(x)
         self.label = label
         self.x = x
 
 
     def _assert(self, submodel, interpretation):
-        return (z3_accessor(Node.label, interpretation(self.x)) ==
-                self.label)
+        return (submodel.pregraph.label(interpretation(self.x))(self.label))
 
+class PostLabeled(AtomicPredicate):
+    """
+    Postgraph variable has specific label.
+    """
+    def __init__(self, x, label, *args):
+        super(PreLabeled, self).__init__(*args)
+        _ensure_string(x)
+        self.label = label
+        self.x = x
+
+
+    def _assert(self, submodel, interpretation):
+        return (submodel.postgraph.label(interpretation(self.x))(self.label))
+
+class PreUnlabeled(AtomicPredicate):
+    """
+    Pregraph variable lacks specific label.
+    """
+    def __init__(self, x, label, *args):
+        super(PreLabeled, self).__init__(*args)
+        _ensure_string(x)
+        self.label = label
+        self.x = x
+
+
+    def _assert(self, submodel, interpretation):
+        return not (submodel.pregraph.label(interpretation(self.x))(self.label))
+
+class PostUnlabeled(AtomicPredicate):
+    """
+    Postgraph variable lacks specific label.
+    """
+    def __init__(self, x, label, *args):
+        super(PreLabeled, self).__init__(*args)
+        _ensure_string(x)
+        self.label = label
+        self.x = x
+
+
+    def _assert(self, submodel, interpretation):
+        return not (submodel.postgraph.label(interpretation(self.x))(self.label))
 
 class PreParent(AtomicPredicate):
     """
@@ -90,6 +129,20 @@ class PreParent(AtomicPredicate):
     def _assert(self, submodel, interpretation):
         return submodel.pregraph.parents(
             interpretation(self.x), interpretation(self.y))
+
+class Named(AtomicPredicate):
+    """
+    Variable v refers to an agent that is (permanently) named n.
+    """
+    def __init__(self, v, n, *args):
+        super(Named, self).__init__(*args)
+        _ensure_variable(v)
+        _ensure_string(n)
+        self.v = v
+        self.n = n
+
+    def _assert(self, submodel, interpretation):
+        return self.v.name == self.n
 
 # TODO: To reduce code size, parametrize PreParent and PostParent
 # over postgraphness or pregraphness

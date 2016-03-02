@@ -210,8 +210,9 @@ def Iff(p1, p2):
 # Atomic predicates. This sets the value of a bunch of variables, e.g. Top and
 # Add, in this namespace.
 
-for classname in ['Top', 'Bottom', 'Equal', 'Labeled', 'PreParent',
+for classname in ['Top', 'Bottom', 'Equal', 'PreLabeled', 'PostLabeled',
                   'PostParent', 'DoParent', 'PreLink', 'PostLink',
+                  'PostUnlabeled', 'Named', 'PreParent', 'PreUnlabeled',
                   'DoLink', 'DoUnlink', 'PreHas', 'PostHas', 'Add', 'Rem']:
     classref = getattr(atomic_predicate, classname)
     new_classref = _atomic_predicate_wrapper(classref)
