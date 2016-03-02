@@ -109,3 +109,16 @@ ModelSet = Function('possible_system', Model, BoolSort())
 Variable = Datatype('Variable')
 Variable.declare('variable', ('get_varname', IntSort()))
 Variable = Variable.create()
+
+def new_variable(nickname="var"):
+    return Const(_collision_free_string(nickname), Variable)
+
+
+# TODO: Put this whole numbergen and collision-free business into your Solver
+# class once you create it
+
+from itertools import count
+_numbergen = count(start=100, step=1)
+
+def _collision_free_string(prefix=""):
+    return prefix + "_" + str(_numbergen.next())
