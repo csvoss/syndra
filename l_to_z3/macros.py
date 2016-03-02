@@ -32,4 +32,9 @@ def phosphorylated_is_active(name_b):
 def directly_activates(name_a, name_b):
     A = new_variable(name_a)
     B = new_variable(name_b)
-    return NotImplemented
+    return ForAll(A, ForAll(B,
+           Implies(Named(A, name_a), Implies(Named(B, name_b),
+           And(PreLabeled(A, "Active"),
+               PreUnlabeled(B, "Active"),
+               PostLabeled(A, "Active"),
+               PostLabeled(B, "Active"))))))
