@@ -146,7 +146,7 @@ class Named(AtomicPredicate):
         self.n = n
 
     def _assert(self, submodel, interpretation):
-        return self.v.name == self.n
+        return Variable.get_name(self.v) == self.n
 
 # TODO: To reduce code size, parametrize PreParent and PostParent
 # over postgraphness or pregraphness

@@ -101,17 +101,30 @@ Model.declare('model', ('pregraph', Graph),
                         ('action', Action), ('postgraph', Graph))
 Model = Model.create()
 
+
 # This represents a set of sets of <graph, action> pairs -- many possible
 # chemical systems that an L statement could represent.
 ModelSet = Function('possible_system', Model, BoolSort())
 
 
 Variable = Datatype('Variable')
-Variable.declare('variable', ('get_varname', IntSort()))
+Variable.declare('variable', ('get_name', IntSort()))
 Variable = Variable.create()
 
 def new_variable(nickname="var"):
     return Const(_collision_free_string(nickname), Variable)
+
+
+# TODO: similarly, new_graph, new_action, new_model
+
+def new_thing_function(datatype, name):
+    def new_thing(nickname=name):
+        return Const(_collision_free_string(nickname), datatype)
+    return new_thing
+
+new_graph = new_thing_function(Graph, 'graph')
+new_action = new_thing_function(Action, 'action')
+new_model = new_thing_function(Model, 'model')
 
 
 # TODO: Put this whole numbergen and collision-free business into your Solver
@@ -135,4 +148,3 @@ def _ensure_string(thing):
     """Raise ValueError if thing is not a Python string."""
     if not isinstance(thing, str):
         raise ValueError("Argument must be a Python string. Instead, got %s" % repr(thing))
-

@@ -2,8 +2,9 @@ import z3
 
 import atomic_predicate
 from datatypes import _ensure_variable, _ensure_string
-from datatypes import Graph, Action, Model, Node, Variable
-import solver
+from datatypes import Node, Variable, Model
+from datatypes import new_graph, new_action, new_model
+from solver import solver
 import z3_helpers
 
 
@@ -19,7 +20,7 @@ class Predicate(object):
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
         with solver.context():
-            model = Model
+            model = new_model()
             interpretation = z3.Function('interpretation', Variable, Node)
             self._assert(model, interpretation)
             if not solver.check():
@@ -31,7 +32,7 @@ class Predicate(object):
     def check_sat(self):
         # returns a boolean
         with solver.context():
-            model = Model
+            model = new_model()
             interpretation = z3.Function('interpretation', Variable, Node)
             self._assert(model, interpretation)
             return solver.check()
@@ -48,10 +49,10 @@ class And(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, And)
 
     def _assert(self, model, i):
-        g = Graph('g')
-        a = Action('a')
-        s = Model('s')
-        t = Model('t')
+        g = new_graph('g')
+        a = new_action('a')
+        s = new_model('s')
+        t = new_model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
@@ -63,10 +64,10 @@ class Or(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, Or)
 
     def _assert(self, model, i):
-        g = Graph('g')
-        a = Action('a')
-        s = Model('s')
-        t = Model('t')
+        g = new_graph('g')
+        a = new_action('a')
+        s = new_model('s')
+        t = new_model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
@@ -78,10 +79,10 @@ class Join(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, Join)
 
     def _assert(self, model, i):
-        g = Graph('g')
-        a = Action('a')
-        s = Model('s')
-        t = Model('t')
+        g = new_graph('g')
+        a = new_action('a')
+        s = new_model('s')
+        t = new_model('t')
 
         def is_plus(alpha, beta, a):
             # Assert that alpha + beta = a. All of these are Actions.
@@ -118,9 +119,9 @@ class Not(Predicate):
         self.pred = pred
 
     def _assert(self, model, i):
-        g = Graph('g')
-        a = Action('a')
-        s = Model('s')
+        g = new_graph('g')
+        a = new_action('a')
+        s = new_model('s')
         return z3.Exists([s], z3.ForAll([g, a],
                 z3.And(self.pred._assert(s, i),
                     z3_helpers.Iff(f(g, a), z3.Not(s(g, a))))))
@@ -184,11 +185,13 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
             self.atomic = atomic_predicate_classref(*args)
 
         def _assert(self, model, i):
-            # f is a function from g,a to bool
-            g = Graph('g')
-            a = Action('a')
+            # model is a function from g,a to bool (as an array)
+            g = new_graph('g')
+            a = new_action('a')
             return z3.ForAll([g, a],
-                    z3_helpers.Iff(model(g, a), self.atomic._assert(g, a)))
+                    z3_helpers.Iff(z3.And(Model.pregraph(model) == g,
+                                       Model.action(model) == a),
+                                   self.atomic._assert(g, a)))
 
     return NewClass
 
