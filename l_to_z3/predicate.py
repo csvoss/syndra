@@ -53,8 +53,8 @@ class And(Predicate):
         s = Model('s')
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    z3_helpers.Iff(f(g, a), s(g, a) and t(g, a)))))
+                z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
+                    z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
 
 
 class Or(Predicate):
@@ -68,8 +68,8 @@ class Or(Predicate):
         s = Model('s')
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    z3_helpers.Iff(f(g, a), s(g, a) or t(g, a)))))
+                z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
+                    z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
 
 
 class Join(Predicate):
@@ -96,10 +96,10 @@ class Join(Predicate):
             beta = Action('beta')
             return z3_helpers.Iff(f(g, a),
                        z3.Exists(alpha, beta),
-                       And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
+                       z3.And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
 
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s, i), self.p2._assert(t, i),
+                z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
                     is_join(f, s, t, g, a))))
 
 
@@ -109,7 +109,7 @@ class DontKnow(Predicate):
         self.p1, self.p2 = _multi_to_binary(preds, DontKnow)
 
     def _assert(self, model, i):
-        return self.p1._assert(model, i) or self.p2._assert(model, i)
+        return z3.Or(self.p1._assert(model, i), self.p2._assert(model, i))
 
 
 class Not(Predicate):
@@ -122,8 +122,8 @@ class Not(Predicate):
         a = Action('a')
         s = Model('s')
         return z3.Exists([s], z3.ForAll([g, a],
-                And(self.pred._assert(s, i),
-                    z3_helpers.Iff(f(g, a), not s(g, a)))))
+                z3.And(self.pred._assert(s, i),
+                    z3_helpers.Iff(f(g, a), z3.Not(s(g, a))))))
 
 
 class ForAll(Predicate):
@@ -149,8 +149,12 @@ class Exists(Predicate):
 
 
 def Implies(predicate1, predicate2):
-    # Macro for implies
-    return Or(Not(predicate1), predicate2)
+    # Macro for an implies predicate
+    _ensure_predicate(predicate1)
+    _ensure_predicate(predicate2)
+    output = Or(Not(predicate1), predicate2)
+    assert isinstance(output, Predicate)
+    return output
 
 
 # Private helper functions.
