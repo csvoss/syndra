@@ -47,13 +47,13 @@ class And(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, And)
 
-    def _assert(self, f, interpretation):
+    def _assert(self, model, i):
         g = Graph('g')
         a = Action('a')
         s = Model('s')
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s), self.p2._assert(t),
+                And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(f(g, a), s(g, a) and t(g, a)))))
 
 
@@ -62,13 +62,13 @@ class Or(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Or)
 
-    def _assert(self, f, interpretation):
+    def _assert(self, model, i):
         g = Graph('g')
         a = Action('a')
         s = Model('s')
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s), self.p2._assert(t),
+                And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(f(g, a), s(g, a) or t(g, a)))))
 
 
@@ -77,7 +77,7 @@ class Join(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Join)
 
-    def _assert(self, f, interpretation):
+    def _assert(self, model, i):
         g = Graph('g')
         a = Action('a')
         s = Model('s')
@@ -99,7 +99,7 @@ class Join(Predicate):
                        And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
 
         return z3.Exists([s, t], z3.ForAll([g, a],
-                And(self.p1._assert(s), self.p2._assert(t),
+                And(self.p1._assert(s, i), self.p2._assert(t, i),
                     is_join(f, s, t, g, a))))
 
 
@@ -108,8 +108,8 @@ class DontKnow(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, DontKnow)
 
-    def _assert(self, f, interpretation):
-        return self.p1._assert(f) or self.p2._assert(f)
+    def _assert(self, model, i):
+        return self.p1._assert(model, i) or self.p2._assert(model, i)
 
 
 class Not(Predicate):
@@ -117,12 +117,12 @@ class Not(Predicate):
     def __init__(self, pred):
         self.pred = pred
 
-    def _assert(self, f, interpretation):
+    def _assert(self, model, i):
         g = Graph('g')
         a = Action('a')
         s = Model('s')
         return z3.Exists([s], z3.ForAll([g, a],
-                And(self.pred._assert(s),
+                And(self.pred._assert(s, i),
                     z3_helpers.Iff(f(g, a), not s(g, a)))))
 
 
@@ -133,8 +133,8 @@ class ForAll(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, f, interpretation):
-        return z3.ForAll([self.var], self.pred._assert(f))
+    def _assert(self, model, i):
+        return z3.ForAll([self.var], self.pred._assert(model, i))
 
 
 class Exists(Predicate):
@@ -144,8 +144,8 @@ class Exists(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, f, interpretation):
-        return z3.Exists([self.var], self.pred._assert(f))
+    def _assert(self, model, i):
+        return z3.Exists([self.var], self.pred._assert(model, i))
 
 
 def Implies(predicate1, predicate2):
@@ -179,12 +179,12 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
         def __init__(self, *args):
             self.atomic = atomic_predicate_classref(*args)
 
-        def _assert(self, f, interpretation):
+        def _assert(self, model, i):
             # f is a function from g,a to bool
             g = Graph('g')
             a = Action('a')
             return z3.ForAll([g, a],
-                    z3_helpers.Iff(f(g, a), self.atomic._assert(g, a)))
+                    z3_helpers.Iff(model(g, a), self.atomic._assert(g, a)))
 
     return NewClass
 
