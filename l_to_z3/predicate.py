@@ -25,7 +25,8 @@ class Predicate(object):
         # (sets of atomic actions).
         with solver.context():
             model = Model
-            self._assert(model)
+            interpretation = z3.Function('interpretation', Variable, Node)
+            self._assert(model, interpretation)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
             return solver.model()
@@ -151,6 +152,10 @@ class Exists(Predicate):
     def _assert(self, f, interpretation):
         pass # TODO
 
+
+def Implies(predicate1, predicate2):
+    # Macro for implies
+    return Or(Not(predicate1), predicate2)
 
 
 # Private helper functions.
