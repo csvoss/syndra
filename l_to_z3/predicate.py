@@ -1,11 +1,10 @@
-import atomic_predicate
-
-import solver
 import z3
 
+import atomic_predicate
 from datatypes import _ensure_variable, _ensure_string
-
 from datatypes import Graph, Action, Model, Node, Variable
+import solver
+import z3_helpers
 
 
 # Predicate and its subclasses.
@@ -55,7 +54,7 @@ class And(Predicate):
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
-                    Iff(f(g, a), s(g, a) and t(g, a)))))
+                    z3_helpers.Iff(f(g, a), s(g, a) and t(g, a)))))
 
 
 class Or(Predicate):
@@ -70,7 +69,7 @@ class Or(Predicate):
         t = Model('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 And(self.p1._assert(s), self.p2._assert(t),
-                    Iff(f(g, a), s(g, a) or t(g, a)))))
+                    z3_helpers.Iff(f(g, a), s(g, a) or t(g, a)))))
 
 
 class Join(Predicate):
@@ -95,7 +94,7 @@ class Join(Predicate):
             # "joined" is the |><| operator.
             alpha = Action('alpha')
             beta = Action('beta')
-            return Iff(f(g, a),
+            return z3_helpers.Iff(f(g, a),
                        z3.Exists(alpha, beta),
                        And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
 
@@ -124,7 +123,7 @@ class Not(Predicate):
         s = Model('s')
         return z3.Exists([s], z3.ForAll([g, a],
                 And(self.pred._assert(s),
-                    Iff(f(g, a), not s(g, a)))))
+                    z3_helpers.Iff(f(g, a), not s(g, a)))))
 
 
 class ForAll(Predicate):
@@ -185,14 +184,10 @@ def _atomic_predicate_wrapper(atomic_predicate_classref):
             g = Graph('g')
             a = Action('a')
             return z3.ForAll([g, a],
-                    Iff(f(g, a), self.atomic._assert(g, a)))
+                    z3_helpers.Iff(f(g, a), self.atomic._assert(g, a)))
 
     return NewClass
 
-
-
-def Iff(p1, p2):
-    return And(Implies(p1, p2), Implies(p2, p1))
 
 # Atomic predicates. This sets the value of a bunch of variables, e.g. Top and
 # Add, in this namespace.
