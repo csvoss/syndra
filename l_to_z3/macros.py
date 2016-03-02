@@ -1,7 +1,7 @@
 from predicate import PreLabeled, PreUnlabeled, Named, PostLabeled, And, Implies, ForAll
 from datatypes import new_variable
 
-# TODO: something like from labels import Active so that you don't have to use raw strings
+from labels import ACTIVE, PHOSPHORYLATED
 
 # Macro for "A" phosphorylates "B"
 # forall A. Named("A", A) => forall B. Named("B", B) =>
@@ -12,10 +12,10 @@ def directly_phosphorylates(name_a, name_b):
     B = new_variable(name_b)
     return ForAll(A, ForAll(B,
            Implies(Named(A, name_a), Implies(Named(B, name_b),
-           And(PreLabeled(A, "Active"),
-               PreUnlabeled(B, "Phosphorylated"),
-               PostLabeled(A, "Active"),
-               PostLabeled(B, "Phosphorylated"))))))
+           And(PreLabeled(A, ACTIVE),
+               PreUnlabeled(B, PHOSPHORYLATED),
+               PostLabeled(A, ACTIVE),
+               PostLabeled(B, PHOSPHORYLATED))))))
 
 # Macro for Phosphorylated "B" is active
 # forall B. Named("B", B) =>
@@ -34,7 +34,7 @@ def directly_activates(name_a, name_b):
     B = new_variable(name_b)
     return ForAll(A, ForAll(B,
            Implies(Named(A, name_a), Implies(Named(B, name_b),
-           And(PreLabeled(A, "Active"),
-               PreUnlabeled(B, "Active"),
-               PostLabeled(A, "Active"),
-               PostLabeled(B, "Active"))))))
+           And(PreLabeled(A, ACTIVE),
+               PreUnlabeled(B, ACTIVE),
+               PostLabeled(A, ACTIVE),
+               PostLabeled(B, ACTIVE))))))
