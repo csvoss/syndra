@@ -111,20 +111,19 @@ Variable = Datatype('Variable')
 Variable.declare('variable', ('get_name', IntSort()))
 Variable = Variable.create()
 
-def new_variable(nickname="var"):
-    return Const(_collision_free_string(nickname), Variable)
 
-
-# TODO: similarly, new_graph, new_action, new_model
-
-def new_thing_function(datatype, name):
-    def new_thing(nickname=name):
+def new_thing_function(datatype, default_name):
+    def new_thing(nickname=default_name):
         return Const(_collision_free_string(nickname), datatype)
     return new_thing
 
+new_variable = new_thing_function(Variable, 'var')
 new_graph = new_thing_function(Graph, 'graph')
 new_action = new_thing_function(Action, 'action')
 new_model = new_thing_function(Model, 'model')
+
+def new_modelset(nickname='modelset'):
+    return Function(_collision_free_string(nickname), Model, BoolSort())
 
 
 # TODO: Put this whole numbergen and collision-free business into your Solver

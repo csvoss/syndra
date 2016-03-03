@@ -3,12 +3,14 @@ import z3
 import atomic_predicate
 from datatypes import _ensure_variable, _ensure_string
 from datatypes import Node, Variable, Model
-from datatypes import new_graph, new_action, new_model
+from datatypes import new_graph, new_action, new_modelset
 from solver import solver
 import z3_helpers
 
 
 # Predicate and its subclasses.
+
+DEBUG = True
 
 class Predicate(object):
     def __init__(self):
@@ -20,9 +22,12 @@ class Predicate(object):
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
         with solver.context():
-            model = new_model()
+            modelset = new_modelset()
             interpretation = z3.Function('interpretation', Variable, Node)
-            self._assert(model, interpretation)
+            predicate = self._assert(modelset, interpretation)
+            #if DEBUG:
+            #    import pdb; pdb.set_trace()
+            solver.add(predicate)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
             return solver.model()
@@ -32,15 +37,31 @@ class Predicate(object):
     def check_sat(self):
         # returns a boolean
         with solver.context():
-            model = new_model()
+            modelset = new_modelset()
             interpretation = z3.Function('interpretation', Variable, Node)
-            self._assert(model, interpretation)
+            predicate = self._assert(modelset, interpretation)
+            #if DEBUG:
+            #    import pdb; pdb.set_trace()
+            solver.add(predicate)
             return solver.check()
 
-    def _assert(self, model, interpretation):
+    def get_predicate(self):
+        modelset = new_modelset()
+        interpretation = z3.Function('interpretation', Variable, Node)
+        predicate = self._assert(modelset, interpretation)
+        return predicate
+
+    def _assert(self, modelset, interpretation):
         # model is something representing a set of sets of pairs
         # this is only used privately, in check_sat and/or get_model
         raise NotImplementedError("Implement _assert in subclasses.")
+
+def has(modelset, g, a):
+    postgraph = new_graph('postgraph')
+    return z3.Exists([postgraph], modelset(Model.model(g, a, postgraph)))
+
+def model_from(g, a):
+    return Model.model(g, a, new_graph('postgraph'))
 
 
 class And(Predicate):
@@ -48,14 +69,15 @@ class And(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, And)
 
-    def _assert(self, model, i):
+    def _assert(self, modelset, i):
         g = new_graph('g')
         a = new_action('a')
-        s = new_model('s')
-        t = new_model('t')
+        s = new_modelset('s')
+        t = new_modelset('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
+                    z3_helpers.Iff(has(modelset, g, a), z3.And(has(s, g, a),
+                                                               has(t, g, a))))))
 
 
 class Or(Predicate):
@@ -63,14 +85,15 @@ class Or(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Or)
 
-    def _assert(self, model, i):
+    def _assert(self, modelset, i):
         g = new_graph('g')
         a = new_action('a')
-        s = new_model('s')
-        t = new_model('t')
+        s = new_modelset('s')
+        t = new_modelset('t')
         return z3.Exists([s, t], z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    z3_helpers.Iff(f(g, a), z3.And(s(g, a), t(g, a))))))
+                    z3_helpers.Iff(has(modelset, g, a), z3.And(has(s, g, a),
+                                                               has(t, g, a))))))
 
 
 class Join(Predicate):
@@ -78,11 +101,11 @@ class Join(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, Join)
 
-    def _assert(self, model, i):
+    def _assert(self, modelset, i):
         g = new_graph('g')
         a = new_action('a')
-        s = new_model('s')
-        t = new_model('t')
+        s = new_modelset('s')
+        t = new_modelset('t')
 
         def is_plus(alpha, beta, a):
             # Assert that alpha + beta = a. All of these are Actions.
@@ -90,18 +113,18 @@ class Join(Predicate):
             # TODO: implement this once you have a clear API for Action.
             pass
 
-        def is_join(f, s, t, g, a):
-            # Assert that f behaves, on inputs g and a, like s "joined" with t.
+        def is_join(modelset, s, t, g, a):
+            # Assert that modelset behaves, on inputs g and a, like s "joined" with t.
             # "joined" is the |><| operator.
             alpha = Action('alpha')
             beta = Action('beta')
-            return z3_helpers.Iff(f(g, a),
+            return z3_helpers.Iff(has(modelset, g, a),
                        z3.Exists(alpha, beta),
-                       z3.And(s(g, alpha), t(g, beta), is_plus(alpha, beta, a)))
+                       z3.And(has(s, g, alpha), has(t, g, beta), is_plus(alpha, beta, a)))
 
         return z3.Exists([s, t], z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    is_join(f, s, t, g, a))))
+                    is_join(modelset, s, t, g, a))))
 
 
 class DontKnow(Predicate):
@@ -109,8 +132,8 @@ class DontKnow(Predicate):
     def __init__(self, *preds):
         self.p1, self.p2 = _multi_to_binary(preds, DontKnow)
 
-    def _assert(self, model, i):
-        return z3.Or(self.p1._assert(model, i), self.p2._assert(model, i))
+    def _assert(self, modelset, i):
+        return z3.Or(self.p1._assert(modelset, i), self.p2._assert(modelset, i))
 
 
 class Not(Predicate):
@@ -118,13 +141,13 @@ class Not(Predicate):
     def __init__(self, pred):
         self.pred = pred
 
-    def _assert(self, model, i):
+    def _assert(self, modelset, i):
         g = new_graph('g')
         a = new_action('a')
-        s = new_model('s')
+        s = new_modelset('s')
         return z3.Exists([s], z3.ForAll([g, a],
                 z3.And(self.pred._assert(s, i),
-                    z3_helpers.Iff(f(g, a), z3.Not(s(g, a))))))
+                    z3_helpers.Iff(has(modelset, g, a), z3.Not(s(g, a))))))
 
 
 class ForAll(Predicate):
@@ -134,8 +157,9 @@ class ForAll(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, model, i):
-        return z3.ForAll([self.var], self.pred._assert(model, i))
+    def _assert(self, modelset, i):
+        return z3.ForAll([self.var], self.pred._assert(modelset, i))
+        # TODO unsure of this
 
 
 class Exists(Predicate):
@@ -145,8 +169,9 @@ class Exists(Predicate):
         self.pred = p
         self.var = var
 
-    def _assert(self, model, i):
-        return z3.Exists([self.var], self.pred._assert(model, i))
+    def _assert(self, modelset, i):
+        return z3.Exists([self.var], self.pred._assert(modelset, i))
+        # TODO unsure of this
 
 
 def Implies(predicate1, predicate2):
@@ -176,23 +201,25 @@ def _multi_to_binary(preds, classref):
     return (p1, p2)
 
 
-def _atomic_predicate_wrapper(atomic_predicate_classref):
+def _wrapped_atomic_predicate(classname):
+    classref = getattr(atomic_predicate, classname)
+
     # Modify the interpretation of the atomic_predicate so that it
     # behaves as a predicate.
     # Each atomic_predicate implements its own _assert
     class NewClass(Predicate):
         def __init__(self, *args):
-            self.atomic = atomic_predicate_classref(*args)
+            self.atomic = classref(*args)
 
-        def _assert(self, model, i):
+        def _assert(self, modelset, i):
             # model is a function from g,a to bool (as an array)
             g = new_graph('g')
             a = new_action('a')
-            return z3.ForAll([g, a],
-                    z3_helpers.Iff(z3.And(Model.pregraph(model) == g,
-                                       Model.action(model) == a),
-                                   self.atomic._assert(g, a)))
+            subpredicate = self.atomic._assert(model_from(g, a), i)
+            import pdb; pdb.set_trace()
+            return z3.ForAll([g, a], subpredicate)
 
+    NewClass.__name__ = classname
     return NewClass
 
 
@@ -203,9 +230,7 @@ for classname in ['Top', 'Bottom', 'Equal', 'PreLabeled', 'PostLabeled',
                   'PostParent', 'DoParent', 'PreLink', 'PostLink',
                   'PostUnlabeled', 'Named', 'PreParent', 'PreUnlabeled',
                   'DoLink', 'DoUnlink', 'PreHas', 'PostHas', 'Add', 'Rem']:
-    classref = getattr(atomic_predicate, classname)
-    new_classref = _atomic_predicate_wrapper(classref)
-    new_classref.__name__ = classname
+    new_classref = _wrapped_atomic_predicate(classname)
     globals()[classname] = new_classref
 
 

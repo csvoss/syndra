@@ -1,5 +1,6 @@
 from unittest import TestCase
 import atomic_predicate
+import predicate
 
 class AtomicPredicateTestCase(TestCase):
 
@@ -20,3 +21,13 @@ class AtomicPredicateTestCase(TestCase):
         self.assertIsNotNone(model)
 
     # TODO: tests for Or, Join, And, DontKnow, Not, Forall, Exists
+
+class PredicateAtomicPredicateTestCase(TestCase):
+
+    def test_top_sat(self):
+        status = predicate.Top().check_sat()
+        self.assertEquals(status, True)
+
+    def test_bottom_unsat(self):
+        status = predicate.Bottom().check_sat()
+        self.assertEquals(status, False)

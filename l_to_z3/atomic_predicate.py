@@ -11,6 +11,8 @@ then, Predicate can manipulate those formulae into an assertion.
 Refer to pg. 7 of the L description.
 """
 
+import z3
+
 from datatypes import Variable, _ensure_string, _ensure_variable
 
 class AtomicPredicate(object):
@@ -30,12 +32,12 @@ class AtomicPredicate(object):
 
 class Top(AtomicPredicate):
     def _assert(self, submodel, interpretation):
-        return True
+        return z3.And(True, True)
 
 
 class Bottom(AtomicPredicate):
     def _assert(self, submodel, interpretation):
-        return False
+        return z3.Or(False, False)
 
 
 class Equal(AtomicPredicate):
@@ -53,8 +55,8 @@ class Equal(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return (z3_accessor(Variable.get_varname, self.x) ==
-                z3_accessor(Variable.get_varname, self.y))
+        return (Variable.get_name(self.x) ==
+                Variable.get_name(self.y))
 
 class PreLabeled(AtomicPredicate):
     """
