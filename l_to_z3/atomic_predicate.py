@@ -14,6 +14,7 @@ Refer to pg. 7 of the L description.
 import z3
 
 from datatypes import Variable, _ensure_string, _ensure_variable
+from string_interner import string_interner
 
 class AtomicPredicate(object):
     """Parent class which all AtomicPredicates will subclass.
@@ -140,15 +141,16 @@ class Named(AtomicPredicate):
     """
     Variable v refers to an agent that is (permanently) named n.
     """
-    def __init__(self, v, n, *args):
+    def __init__(self, var, name, *args):
         super(Named, self).__init__(*args)
-        _ensure_variable(v)
-        _ensure_string(n)
-        self.v = v
-        self.n = n
+        _ensure_variable(var)
+        _ensure_string(name)
+        self.var = var
+        self.name = name
+        self.name_as_number = string_interner.get_int_or_add(self.name)
 
     def _assert(self, submodel, interpretation):
-        return Variable.get_name(self.v) == self.n
+        return Variable.get_name(self.var) == self.name_as_number
 
 # TODO: To reduce code size, parametrize PreParent and PostParent
 # over postgraphness or pregraphness
