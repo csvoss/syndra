@@ -125,6 +125,9 @@ new_model = new_thing_function(Model, 'model')
 def new_modelset(nickname='modelset'):
     return Function(_collision_free_string(nickname), Model, BoolSort())
 
+def new_interpretation():
+    return z3.Function('interpretation', Variable, Node)
+
 
 # TODO: Put this whole numbergen and collision-free business into your Solver
 # class once you create it

@@ -3,7 +3,7 @@ import z3
 import atomic_predicate
 from datatypes import _ensure_variable, _ensure_string
 from datatypes import Node, Variable, Model
-from datatypes import new_graph, new_action, new_modelset
+from datatypes import new_graph, new_action, new_modelset, new_interpretation
 from solver import solver
 import z3_helpers
 
@@ -23,7 +23,7 @@ class Predicate(object):
         # (sets of atomic actions).
         with solver.context():
             modelset = new_modelset()
-            interpretation = z3.Function('interpretation', Variable, Node)
+            interpretation = new_interpretation()
             predicate = self._assert(modelset, interpretation)
             #if DEBUG:
             #    import pdb; pdb.set_trace()
@@ -38,7 +38,7 @@ class Predicate(object):
         # returns a boolean
         with solver.context():
             modelset = new_modelset()
-            interpretation = z3.Function('interpretation', Variable, Node)
+            interpretation = new_interpretation()
             predicate = self._assert(modelset, interpretation)
             #if DEBUG:
             #    import pdb; pdb.set_trace()
@@ -47,7 +47,7 @@ class Predicate(object):
 
     def get_predicate(self):
         modelset = new_modelset()
-        interpretation = z3.Function('interpretation', Variable, Node)
+        interpretation = new_interpretation()
         predicate = self._assert(modelset, interpretation)
         return predicate
 
@@ -216,7 +216,6 @@ def _wrapped_atomic_predicate(classname):
             g = new_graph('g')
             a = new_action('a')
             subpredicate = self.atomic._assert(model_from(g, a), i)
-            import pdb; pdb.set_trace()
             return z3.ForAll([g, a], subpredicate)
 
     NewClass.__name__ = classname
