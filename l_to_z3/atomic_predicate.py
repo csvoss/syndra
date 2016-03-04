@@ -13,7 +13,7 @@ Refer to pg. 7 of the L description.
 
 import z3
 
-from datatypes import Variable, _ensure_string, _ensure_variable
+from datatypes import Model, Variable, _ensure_string, _ensure_variable
 from string_interner import string_interner
 
 class AtomicPredicate(object):
@@ -73,7 +73,7 @@ class PreLabeled(AtomicPredicate):
 
 
     def _assert(self, submodel, interpretation):
-        return (submodel.pregraph.label(interpretation(self.x))(self.label_as_int))
+        return (Model.pregraph(submodel).label(interpretation(self.x))(self.label_as_int))
 
 class PostLabeled(AtomicPredicate):
     """
@@ -105,7 +105,7 @@ class PreUnlabeled(AtomicPredicate):
 
 
     def _assert(self, submodel, interpretation):
-        return not (submodel.pregraph.label(interpretation(self.x))(self.label_as_int))
+        return not (Model.pregraph(submodel).label(interpretation(self.x))(self.label_as_int))
 
 class PostUnlabeled(AtomicPredicate):
     """
@@ -138,7 +138,7 @@ class PreParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return submodel.pregraph.parents(
+        return Model.pregraph(submodel).parents(
             interpretation(self.x), interpretation(self.y))
 
 class Named(AtomicPredicate):
@@ -194,7 +194,7 @@ class DoParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return submodel.action.has(
+        return Model.action(submodel).has(
             AtomicAction.parent_action(
                 interpretation(self.x), interpretation(self.y)))
 
@@ -213,7 +213,7 @@ class PreLink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return model.pregraph.links(
+        return Model.pregraph(submodel).links(
             interpretation(self.x), interpretation(self.y))
 
 class PostLink(AtomicPredicate):
@@ -249,7 +249,7 @@ class DoLink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return submodel.action.has(
+        return Model.action(submodel).has(
             AtomicAction.link_action(
                 interpretation(self.x), interpretation(self.y)))
 
@@ -268,7 +268,7 @@ class DoUnlink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return submodel.action.has(
+        return Model.action(submodel).has(
             AtomicAction.unlink_action(
                 interpretation(self.x), interpretation(self.y)))
 
@@ -284,7 +284,7 @@ class PreHas(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return model.pregraph.has(
+        return Model.pregraph(submodel).has(
             interpretation(self.x))
 
 class PostHas(AtomicPredicate):
@@ -313,8 +313,8 @@ class Add(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return (submodel.action.has(AtomicAction.add_action(interpretation(x)))
-            and not model.pregraph.has(interpretation(x)))
+        return (Model.action(submodel).has(AtomicAction.add_action(interpretation(x)))
+            and not Model.pregraph(submodel).has(interpretation(x)))
 
 class Rem(AtomicPredicate):
     """
@@ -326,8 +326,8 @@ class Rem(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return (submodel.action.has(AtomicAction.rem_action(interpretation(x)))
-            and model.pregraph.has(interpretation(x)))
+        return (Model.action(submodel).has(AtomicAction.rem_action(interpretation(x)))
+            and Model.pregraph(submodel).has(interpretation(x)))
 
 
 

@@ -1,4 +1,5 @@
 from unittest import TestCase
+import datatypes
 import predicate
 
 class PredicateTestCase(TestCase):
@@ -11,20 +12,25 @@ class PredicateTestCase(TestCase):
 
         # This one asserts that some molecule labeled Protein can bind to some
         # molecule labeled Substrate via some site labeled Site.
+        VarA = datatypes.new_variable("VarA")
+        VarB = datatypes.new_variable("VarB")
+        VarC = datatypes.new_variable("VarC")
         self.phi = predicate.And(
-            predicate.Labeled("VarA", "Protein"),
-            predicate.Labeled("VarB", "Substrate"),
-            predicate.Labeled("VarC", "Site"),
-            predicate.PreParent("VarA", "VarC"),
-            predicate.DoLink("VarC", "VarB") # TODO: ask Adrien why Do and Post both exist
+            predicate.PreLabeled(VarA, "Protein"),
+            predicate.PreLabeled(VarB, "Substrate"),
+            predicate.PreLabeled(VarC, "Site"),
+            predicate.PreParent(VarA, VarC),
+            predicate.DoLink(VarC, VarB) # TODO: ask Adrien why Do and Post both exist
         )
 
         # This one asserts that some molecule labeled D can bind directly to
-        # some molecule labeled B.
+        # some molecule labeled E.
+        VarD = datatypes.new_variable("VarD")
+        VarE = datatypes.new_variable("VarE")
         self.psi = predicate.And(
-            predicate.Labeled("VarD", "D"),
-            predicate.Labeled("VarB", "B"),
-            predicate.DoLink("VarB", "VarD")
+            predicate.PreLabeled(VarD, "D"),
+            predicate.PreLabeled(VarE, "E"),
+            predicate.DoLink(VarE, VarD)
         )
 
         self.phi_model = self.phi.get_model()

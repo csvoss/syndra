@@ -25,8 +25,6 @@ class Predicate(object):
             modelset = new_modelset()
             interpretation = new_interpretation()
             predicate = self._assert(modelset, interpretation)
-            #if DEBUG:
-            #    import pdb; pdb.set_trace()
             solver.add(predicate)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
@@ -40,8 +38,6 @@ class Predicate(object):
             modelset = new_modelset()
             interpretation = new_interpretation()
             predicate = self._assert(modelset, interpretation)
-            #if DEBUG:
-            #    import pdb; pdb.set_trace()
             solver.add(predicate)
             return solver.check()
 
