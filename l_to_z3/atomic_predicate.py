@@ -68,11 +68,12 @@ class PreLabeled(AtomicPredicate):
         _ensure_variable(x)
         _ensure_string(label)
         self.label = label
+        self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
 
     def _assert(self, submodel, interpretation):
-        return (submodel.pregraph.label(interpretation(self.x))(self.label))
+        return (submodel.pregraph.label(interpretation(self.x))(self.label_as_int))
 
 class PostLabeled(AtomicPredicate):
     """
@@ -83,11 +84,12 @@ class PostLabeled(AtomicPredicate):
         _ensure_variable(x)
         _ensure_string(label)
         self.label = label
+        self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
 
     def _assert(self, submodel, interpretation):
-        return (submodel.postgraph.label(interpretation(self.x))(self.label))
+        return (submodel.postgraph.label(interpretation(self.x))(self.label_as_int))
 
 class PreUnlabeled(AtomicPredicate):
     """
@@ -98,11 +100,12 @@ class PreUnlabeled(AtomicPredicate):
         _ensure_variable(x)
         _ensure_string(label)
         self.label = label
+        self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
 
     def _assert(self, submodel, interpretation):
-        return not (submodel.pregraph.label(interpretation(self.x))(self.label))
+        return not (submodel.pregraph.label(interpretation(self.x))(self.label_as_int))
 
 class PostUnlabeled(AtomicPredicate):
     """
@@ -113,11 +116,12 @@ class PostUnlabeled(AtomicPredicate):
         _ensure_variable(x)
         _ensure_string(label)
         self.label = label
+        self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
 
     def _assert(self, submodel, interpretation):
-        return not (submodel.postgraph.label(interpretation(self.x))(self.label))
+        return not (submodel.postgraph.label(interpretation(self.x))(self.label_as_int))
 
 class PreParent(AtomicPredicate):
     """
