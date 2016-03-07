@@ -2,17 +2,15 @@
 Krivine - using the Python bindings for Z3.
 """
 
-from z3 import *
-from z3_helpers import *
+from z3 import Datatype, ArraySort, IntSort, BoolSort, Function, Const
+from z3_helpers import Iff, Equals
 
 
-Labelset = ArraySort(IntSort(), BoolSort())
 
 # Node is a datatype representing a vertex or node in a Kappa graph.
 Node = Datatype('Node')
 Node.declare('node',
-    ('labels', Labelset),
-    ('name', IntSort()))
+    ('unique_identifier', IntSort()))
 Node = Node.create()
 
 # A datatype for storing a pair of edges
@@ -25,13 +23,17 @@ Edge = Edge.create()
 Nodeset = ArraySort(Node, BoolSort())
 Edgeset = ArraySort(Edge, BoolSort())
 
+Labelset = ArraySort(IntSort(), BoolSort())
+Labelmap = ArraySort(Node, Labelset)
+
 # Graph, before a rule or action has applied. Merged Pregraph and Postgraph
 # into a single datatype.
 Graph = Datatype('Graph')
 Graph.declare('graph',
     ('has', Nodeset),
     ('links', Edgeset),
-    ('parents', Edgeset))
+    ('parents', Edgeset),
+    ('labelmap', Labelmap))
 Graph = Graph.create()
 
 # Atomic action. An Action is comprised of a set of these.
@@ -126,7 +128,7 @@ def new_modelset(nickname='modelset'):
     return Function(_collision_free_string(nickname), Model, BoolSort())
 
 def new_interpretation():
-    return z3.Function('interpretation', Variable, Node)
+    return Function('interpretation', Variable, Node)
 
 
 # TODO: Put this whole numbergen and collision-free business into your Solver

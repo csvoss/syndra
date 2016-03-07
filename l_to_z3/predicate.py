@@ -70,10 +70,10 @@ class And(Predicate):
         a = new_action('a')
         s = new_modelset('s')
         t = new_modelset('t')
-        return z3.Exists([s, t], z3.ForAll([g, a],
+        return z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(has(modelset, g, a), z3.And(has(s, g, a),
-                                                               has(t, g, a))))))
+                                                               has(t, g, a)))))
 
 
 class Or(Predicate):
@@ -86,10 +86,10 @@ class Or(Predicate):
         a = new_action('a')
         s = new_modelset('s')
         t = new_modelset('t')
-        return z3.Exists([s, t], z3.ForAll([g, a],
+        return z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
                     z3_helpers.Iff(has(modelset, g, a), z3.And(has(s, g, a),
-                                                               has(t, g, a))))))
+                                                               has(t, g, a)))))
 
 
 class Join(Predicate):
@@ -118,9 +118,9 @@ class Join(Predicate):
                        z3.Exists(alpha, beta),
                        z3.And(has(s, g, alpha), has(t, g, beta), is_plus(alpha, beta, a)))
 
-        return z3.Exists([s, t], z3.ForAll([g, a],
+        return z3.ForAll([g, a],
                 z3.And(self.p1._assert(s, i), self.p2._assert(t, i),
-                    is_join(modelset, s, t, g, a))))
+                    is_join(modelset, s, t, g, a)))
 
 
 class DontKnow(Predicate):
@@ -141,9 +141,9 @@ class Not(Predicate):
         g = new_graph('g')
         a = new_action('a')
         s = new_modelset('s')
-        return z3.Exists([s], z3.ForAll([g, a],
+        return z3.ForAll([g, a],
                 z3.And(self.pred._assert(s, i),
-                    z3_helpers.Iff(has(modelset, g, a), z3.Not(s(g, a))))))
+                    z3_helpers.Iff(has(modelset, g, a), z3.Not(has(s, g, a)))))
 
 
 class ForAll(Predicate):

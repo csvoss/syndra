@@ -13,7 +13,8 @@ Refer to pg. 7 of the L description.
 
 import z3
 
-from datatypes import Model, Variable, _ensure_string, _ensure_variable
+from datatypes import (AtomicAction, Action, Edge, Graph, Model,
+                       Variable, _ensure_string, _ensure_variable)
 from string_interner import string_interner
 
 class AtomicPredicate(object):
@@ -71,9 +72,14 @@ class PreLabeled(AtomicPredicate):
         self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
-
     def _assert(self, submodel, interpretation):
-        return (Model.pregraph(submodel).label(interpretation(self.x))(self.label_as_int))
+        labelmap = Graph.labelmap(Model.pregraph(submodel))
+        node = interpretation(self.x)
+        labelset = z3.Select(labelmap, node)
+        label = self.label_as_int
+        has_label = z3.Select(labelset, label)
+        return has_label
+
 
 class PostLabeled(AtomicPredicate):
     """
@@ -87,9 +93,14 @@ class PostLabeled(AtomicPredicate):
         self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
-
     def _assert(self, submodel, interpretation):
-        return (submodel.postgraph.label(interpretation(self.x))(self.label_as_int))
+        labelmap = Graph.labelmap(Model.postgraph(submodel))
+        node = interpretation(self.x)
+        labelset = z3.Select(labelmap, node)
+        label = self.label_as_int
+        has_label = z3.Select(labelset, label)
+        return has_label
+
 
 class PreUnlabeled(AtomicPredicate):
     """
@@ -103,9 +114,14 @@ class PreUnlabeled(AtomicPredicate):
         self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
-
     def _assert(self, submodel, interpretation):
-        return not (Model.pregraph(submodel).label(interpretation(self.x))(self.label_as_int))
+        labelmap = Graph.labelmap(Model.pregraph(submodel))
+        node = interpretation(self.x)
+        labelset = z3.Select(labelmap, node)
+        label = self.label_as_int
+        has_label = z3.Select(labelset, label)
+        return z3.Not(has_label)
+
 
 class PostUnlabeled(AtomicPredicate):
     """
@@ -119,9 +135,14 @@ class PostUnlabeled(AtomicPredicate):
         self.label_as_int = string_interner.get_int_or_add(self.label)
         self.x = x
 
-
     def _assert(self, submodel, interpretation):
-        return not (submodel.postgraph.label(interpretation(self.x))(self.label_as_int))
+        labelmap = Graph.labelmap(Model.postgraph(submodel))
+        node = interpretation(self.x)
+        labelset = z3.Select(labelmap, node)
+        label = self.label_as_int
+        has_label = z3.Select(labelset, label)
+        return z3.Not(has_label)
+
 
 class PreParent(AtomicPredicate):
     """
@@ -138,8 +159,11 @@ class PreParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return Model.pregraph(submodel).parents(
-            interpretation(self.x), interpretation(self.y))
+        graph = Model.pregraph(submodel)
+        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
+        parents_function = Graph.parents(graph)
+        has_edge = z3.Select(parents_function, edge)
+        return has_edge
 
 class Named(AtomicPredicate):
     """
@@ -176,8 +200,12 @@ class PostParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return submodel.postgraph.parents(
-            interpretation(self.x), interpretation(self.y))
+        graph = Model.postgraph(submodel)
+        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
+        parents_function = Graph.parents(graph)
+        has_edge = z3.Select(parents_function, edge)
+        return has_edge
+
 
 class DoParent(AtomicPredicate):
     """
@@ -194,9 +222,12 @@ class DoParent(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return Model.action(submodel).has(
-            AtomicAction.parent_action(
-                interpretation(self.x), interpretation(self.y)))
+        action = Model.action(submodel)
+        atomic_action = AtomicAction.parent_action(
+            interpretation(self.x), interpretation(self.y))
+        has_action = z3.Select(action, atomic_action)
+        return has_action
+
 
 class PreLink(AtomicPredicate):
     """
@@ -213,8 +244,12 @@ class PreLink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return Model.pregraph(submodel).links(
-            interpretation(self.x), interpretation(self.y))
+        graph = Model.pregraph(submodel)
+        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
+        links_function = Graph.links(graph)
+        has_edge = z3.Select(links_function, edge)
+        return has_edge
+
 
 class PostLink(AtomicPredicate):
     """
@@ -231,8 +266,12 @@ class PostLink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return model.postgraph.links(
-            interpretation(self.x), interpretation(self.y))
+        graph = Model.postgraph(submodel)
+        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
+        links_function = Graph.links(graph)
+        has_edge = z3.Select(links_function, edge)
+        return has_edge
+
 
 class DoLink(AtomicPredicate):
     """
@@ -249,9 +288,12 @@ class DoLink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return Model.action(submodel).has(
-            AtomicAction.link_action(
-                interpretation(self.x), interpretation(self.y)))
+        action = Model.action(submodel)
+        atomic_action = AtomicAction.link_action(
+            interpretation(self.x), interpretation(self.y))
+        has_action = z3.Select(action, atomic_action)
+        return has_action
+
 
 class DoUnlink(AtomicPredicate):
     """
@@ -268,9 +310,12 @@ class DoUnlink(AtomicPredicate):
         self.y = y
 
     def _assert(self, submodel, interpretation):
-        return Model.action(submodel).has(
-            AtomicAction.unlink_action(
-                interpretation(self.x), interpretation(self.y)))
+        action = Model.action(submodel)
+        atomic_action = AtomicAction.unlink_action(
+            interpretation(self.x), interpretation(self.y))
+        has_action = z3.Select(action, atomic_action)
+        return has_action
+
 
 class PreHas(AtomicPredicate):
     """
@@ -284,8 +329,11 @@ class PreHas(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return Model.pregraph(submodel).has(
-            interpretation(self.x))
+        graph = Model.pregraph(submodel)
+        has_function = Graph.has(graph)
+        has_node = z3.Select(has_function, self.x)
+        return has_node
+
 
 class PostHas(AtomicPredicate):
     """
@@ -299,7 +347,7 @@ class PostHas(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return model.postgraph.has(
+        return Model.postgraph(submodel).has(
             interpretation(self.x))
 
 
