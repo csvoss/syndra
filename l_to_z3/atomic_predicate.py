@@ -60,110 +60,73 @@ class Equal(AtomicPredicate):
         return (Variable.get_name(self.x) ==
                 Variable.get_name(self.y))
 
-class PreLabeled(AtomicPredicate):
-    """
-    Pregraph variable has specific label.
-    """
-    def __init__(self, x, label, *args):
-        super(PreLabeled, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_string(label)
-        self.label = label
-        self.label_as_int = string_interner.get_int_or_add(self.label)
-        self.x = x
+def LabeledClassGenerator(name, pre=None, un=None):
+    assert pre is not None
+    assert un is not None
 
-    def _assert(self, submodel, interpretation):
-        labelmap = Graph.labelmap(Model.pregraph(submodel))
-        node = interpretation(self.x)
-        labelset = z3.Select(labelmap, node)
-        label = self.label_as_int
-        has_label = z3.Select(labelset, label)
-        return has_label
+    class GeneratedClass(AtomicPredicate):
+        def __init__(self, var, label, *args):
+            AtomicPredicate.__init__(self, *args)
+            _ensure_variable(var)
+            _ensure_string(label)
+            self.label = label
+            self.label_as_int = string_interner.get_int_or_add(self.label)
+            self.var = var
 
+        def _assert(self, submodel, interpretation):
+            if pre:
+                labelmap = Graph.labelmap(Model.pregraph(submodel))
+            else:
+                labelmap = Graph.labelmap(Model.postgraph(submodel))
+            node = interpretation(self.var)
+            labelset = z3.Select(labelmap, node)
+            label = self.label_as_int
+            has_label = z3.Select(labelset, label)
+            if un:
+                return z3.Not(has_label)
+            else:
+                return has_label
 
-class PostLabeled(AtomicPredicate):
-    """
-    Postgraph variable has specific label.
-    """
-    def __init__(self, x, label, *args):
-        super(PostLabeled, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_string(label)
-        self.label = label
-        self.label_as_int = string_interner.get_int_or_add(self.label)
-        self.x = x
+    GeneratedClass.__name__ = name
+    return GeneratedClass
 
-    def _assert(self, submodel, interpretation):
-        labelmap = Graph.labelmap(Model.postgraph(submodel))
-        node = interpretation(self.x)
-        labelset = z3.Select(labelmap, node)
-        label = self.label_as_int
-        has_label = z3.Select(labelset, label)
-        return has_label
+PreLabeled = LabeledClassGenerator('PreLabeled', pre=True, un=False)
+PostLabeled = LabeledClassGenerator('PostLabeled', pre=False, un=False)
+PreUnlabeled = LabeledClassGenerator('PreUnlabeled', pre=True, un=True)
+PostUnlabeled = LabeledClassGenerator('PostUnlabeled', pre=False, un=True)
 
+def EdgeClassGenerator(name, pre=None, parent=None):
+    assert pre is not None
+    assert parent is not None
 
-class PreUnlabeled(AtomicPredicate):
-    """
-    Pregraph variable lacks specific label.
-    """
-    def __init__(self, x, label, *args):
-        super(PreUnlabeled, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_string(label)
-        self.label = label
-        self.label_as_int = string_interner.get_int_or_add(self.label)
-        self.x = x
+    class GeneratedClass(AtomicPredicate):
+        def __init__(self, x, y, *args):
+            AtomicPredicate.__init__(self, *args)
+            _ensure_variable(x)
+            _ensure_variable(y)
+            self.x = x
+            self.y = y
 
-    def _assert(self, submodel, interpretation):
-        labelmap = Graph.labelmap(Model.pregraph(submodel))
-        node = interpretation(self.x)
-        labelset = z3.Select(labelmap, node)
-        label = self.label_as_int
-        has_label = z3.Select(labelset, label)
-        return z3.Not(has_label)
+        def _assert(self, submodel, interpretation):
+            if pre:
+                graph = Model.pregraph(submodel)
+            else:
+                graph = Model.postgraph(submodel)
+            edge = Edge.edge(interpretation(self.x), interpretation(self.y))
+            if parent:
+                function = Graph.parents(graph)
+            else:
+                function = Graph.links(graph)
+            has_edge = z3.Select(function, edge)
+            return has_edge
 
+    GeneratedClass.__name__ = name
+    return GeneratedClass
 
-class PostUnlabeled(AtomicPredicate):
-    """
-    Postgraph variable lacks specific label.
-    """
-    def __init__(self, x, label, *args):
-        super(PostUnlabeled, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_string(label)
-        self.label = label
-        self.label_as_int = string_interner.get_int_or_add(self.label)
-        self.x = x
-
-    def _assert(self, submodel, interpretation):
-        labelmap = Graph.labelmap(Model.postgraph(submodel))
-        node = interpretation(self.x)
-        labelset = z3.Select(labelmap, node)
-        label = self.label_as_int
-        has_label = z3.Select(labelset, label)
-        return z3.Not(has_label)
-
-
-class PreParent(AtomicPredicate):
-    """
-    ; Variable x has child y.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-parents (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PreParent, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def _assert(self, submodel, interpretation):
-        graph = Model.pregraph(submodel)
-        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
-        parents_function = Graph.parents(graph)
-        has_edge = z3.Select(parents_function, edge)
-        return has_edge
+PreParent = EdgeClassGenerator('PreParent', pre=True, parent=True)
+PostParent = EdgeClassGenerator('PostParent', pre=False, parent=True)
+PreLink = EdgeClassGenerator('PreLink', pre=True, parent=False)
+PostLink = EdgeClassGenerator('PostLink', pre=False, parent=False)
 
 class Named(AtomicPredicate):
     """
@@ -179,33 +142,6 @@ class Named(AtomicPredicate):
 
     def _assert(self, submodel, interpretation):
         return Variable.get_name(self.var) == self.name_as_number
-
-# TODO: To reduce code size, parametrize PreParent and PostParent
-# over postgraphness or pregraphness
-
-class PostParent(AtomicPredicate):
-    """
-    ; "Bar" of "Variable x has child y", which seems to indicate that x has
-    ; child y only in the second graph produced by G combined with A.
-    ; This is the postcondition!
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-2-parents (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PostParent, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def _assert(self, submodel, interpretation):
-        graph = Model.postgraph(submodel)
-        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
-        parents_function = Graph.parents(graph)
-        has_edge = z3.Select(parents_function, edge)
-        return has_edge
-
 
 class DoParent(AtomicPredicate):
     """
@@ -227,50 +163,6 @@ class DoParent(AtomicPredicate):
             interpretation(self.x), interpretation(self.y))
         has_action = z3.Select(action, atomic_action)
         return has_action
-
-
-class PreLink(AtomicPredicate):
-    """
-    ; Variable x links to variable y.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-links (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PreLink, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def _assert(self, submodel, interpretation):
-        graph = Model.pregraph(submodel)
-        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
-        links_function = Graph.links(graph)
-        has_edge = z3.Select(links_function, edge)
-        return has_edge
-
-
-class PostLink(AtomicPredicate):
-    """
-    ; "Bar" of Variable x links to variable y; Again a postcondition.
-    (declare-const x Variable)
-    (declare-const y Variable)
-    (assert (graph-2-links (interpretation x) (interpretation y)))
-    """
-    def __init__(self, x, y, *args):
-        super(PostLink, self).__init__(*args)
-        _ensure_variable(x)
-        _ensure_variable(y)
-        self.x = x
-        self.y = y
-
-    def _assert(self, submodel, interpretation):
-        graph = Model.postgraph(submodel)
-        edge = Edge.edge(interpretation(self.x), interpretation(self.y))
-        links_function = Graph.links(graph)
-        has_edge = z3.Select(links_function, edge)
-        return has_edge
 
 
 class DoLink(AtomicPredicate):
