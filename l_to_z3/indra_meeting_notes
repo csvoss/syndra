@@ -1,0 +1,18 @@
+pa.related_stmts
+pa.related_stmts[0].supported_by
+pa.related_stmts[0].agent_list?
+
+ActivityActivity implied by ActivityModification (at two sites) and two Phosphorylations (at each site)
+
+Phosphorylation(MAP2K1, MAPK1, PhosphorylationThreonine, #)
+Phosphorylation(MAP2K1, MAPK1, PhosphorylationTyrosine, #)
+ActivityActivity(MAP2K1, Kinase, increases, MAPK1, Kinase)
+ActivityModification(MAPK1, ['PhosphorylationThreonine', 'PhosphorylationTyrosine'], ['183', '185'], increases, Activity)
+
+
+come out with most mechanistic set of statements
+but preserve the information supporting those statements
+
+e.g. if we hear A->B and B->C and A->C, discard A->C because
+it's implied, but keep some sort of information saying that
+A->B is supported by its implication (with B->C) of A->C

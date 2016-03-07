@@ -44,13 +44,14 @@ def example_statements(i):
 def syndra_from_statements(statements):
     """Given a list of INDRA statements, produce an L formula, then
     return the corresponding model as determined by Z3."""
-    from l_to_z3 import model, statements_to_predicate
-    m = model.Model()
-    pred = statements_to_predicate.make_predicate(statements, m)
-    return pred.get_model()
+    from l_to_z3 import statements_to_predicates
+    pred = statements_to_predicates.make_predicate_many(statements)
+    return pred
 
 if __name__ == '__main__':
     print "Simple example from text: MEK phosphorylates ERK."
     statements = make_statements("MEK phosphorylates ERK")
-    print syndra_from_statements(statements)
+    pred = syndra_from_statements(statements)
+    print pred
+    print pred.check_sat()
     print ""
