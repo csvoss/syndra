@@ -72,9 +72,9 @@ class MySolver(object):
             # If we're satisfiable after adding NOT(assertion), that means
             # the assertion was not implied.
             if self.check():
-                return True   # satisfiable NOT(x) --> invalid x
+                return False   # satisfiable NOT(x) --> invalid x
             else:
-                return False  # unsatisfiable NOT(x) --> valid x
+                return True  # unsatisfiable NOT(x) --> valid x
 
 
 
