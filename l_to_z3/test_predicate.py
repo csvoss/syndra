@@ -36,7 +36,6 @@ class PredicateTestCase(TestCase):
         self.phi_model = self.phi.get_model()
         self.psi_model = self.psi.get_model()
 
-
     def test_top_sat(self):
         self.assertTrue(self.top.check_sat())
 

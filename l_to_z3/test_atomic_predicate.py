@@ -1,10 +1,10 @@
 import z3
 
-from unittest import TestCase
 import atomic_predicate
 import datatypes
 import predicate
 from solver import solver
+from unittest import TestCase
 
 class AtomicPredicateTestCase(TestCase):
 
@@ -57,18 +57,58 @@ class AtomicPredicateTestCase(TestCase):
 
         solver.pop()
 
-    
+    def test_named_sat(self):
+        v = datatypes.new_variable()
+        s = "Name"
+        pred = atomic_predicate.Named(v, s)
+        self.assertSat(pred)
+
+    def test_named_unsat(self):
+        v = datatypes.new_variable()
+        s1 = "Name 1"
+        s2 = "Name 2"
+        pred1 = atomic_predicate.Named(v, s1)
+        pred2 = atomic_predicate.Named(v, s2)
+        status = solver.quick_check(
+            z3.And(pred1._assert(self.submodel, self.interpretation),
+                   pred2._assert(self.submodel, self.interpretation)))
+        self.assertFalse(status)
+
+    def test_named_still_sat(self):
+        v = datatypes.new_variable()
+        s1 = "Same Name"
+        s2 = "Same Name"
+        pred1 = atomic_predicate.Named(v, s1)
+        pred2 = atomic_predicate.Named(v, s2)
+        status = solver.quick_check(
+            z3.And(pred1._assert(self.submodel, self.interpretation),
+                   pred2._assert(self.submodel, self.interpretation)))
+        self.assertTrue(status)
+
+    def test_validity_of_name_implies_name(self):
+        v = datatypes.new_variable()
+        s1 = "Same Name"
+        s2 = "Same Name"
+        pred1 = atomic_predicate.Named(v, s1)
+        pred2 = atomic_predicate.Named(v, s2)
+        solver.push()
+        solver.add(pred1._assert(self.submodel, self.interpretation))
+        self.assertTrue(solver.check())
+        status = solver.quick_check_implied(
+                   pred2._assert(self.submodel, self.interpretation))
+        self.assertTrue(status)
+        solver.pop()
 
 
 
-    # TODO: tests for Or, Join, And, DontKnow, Not, Forall, Exists
 
-class PredicateAtomicPredicateTestCase(TestCase):
+
+class AtomicPredicateToPredicateTestCase(TestCase):
 
     def test_top_sat(self):
         status = predicate.Top().check_sat()
-        self.assertEquals(status, True)
+        self.assertTrue(status)
 
     def test_bottom_unsat(self):
         status = predicate.Bottom().check_sat()
-        self.assertEquals(status, False)
+        self.assertFalse(status)

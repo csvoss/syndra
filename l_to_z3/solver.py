@@ -3,13 +3,13 @@ Global Z3 solver for use by other files.
 """
 
 from contextlib import contextmanager
-from z3 import Solver
+import z3
 
 
 class MySolver(object):
 
     def __init__(self):
-        self._solver = Solver()
+        self._solver = z3.Solver()
         # TODO: Initialize datatypes here
 
     # TODO: Port the below functions to here as methods
@@ -60,6 +60,22 @@ class MySolver(object):
         with self.context():
             self.add(assertion)
             return self.check()
+
+    def quick_check_implied(self, assertion):
+        """Add an assertion only temporarily, and check that the assertion
+        is valid -- that is, necessarily true -- given current state."""
+        with self.context():
+            # False implies anything, so return True if we start unsat.
+            if not self.check():
+                return True
+            self.add(z3.Not(assertion))
+            # If we're satisfiable after adding NOT(assertion), that means
+            # the assertion was not implied.
+            if self.check():
+                return True   # satisfiable NOT(x) --> invalid x
+            else:
+                return False  # unsatisfiable NOT(x) --> valid x
+
 
 
 solver = MySolver()
