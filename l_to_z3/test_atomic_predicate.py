@@ -1,10 +1,10 @@
+from unittest import TestCase
 import z3
 
 import atomic_predicate
 import datatypes
 import predicate
 from solver import solver
-from unittest import TestCase
 
 class AtomicPredicateTestCase(TestCase):
 
@@ -44,18 +44,15 @@ class AtomicPredicateTestCase(TestCase):
         pred2 = atomic_predicate.Equal(v2, v3)
         pred3 = atomic_predicate.Equal(v1, v3)
 
-        solver.push()
+        with solver.context():
+            solver.add(pred1._assert(self.submodel, self.interpretation))
+            solver.add(pred2._assert(self.submodel, self.interpretation))
+            sat = solver.check()
+            self.assertTrue(sat)
 
-        solver.add(pred1._assert(self.submodel, self.interpretation))
-        solver.add(pred2._assert(self.submodel, self.interpretation))
-        sat = solver.check()
-        self.assertTrue(sat)
-
-        solver.add(z3.Not(pred3._assert(self.submodel, self.interpretation)))
-        unsat = solver.check()
-        self.assertFalse(unsat)
-
-        solver.pop()
+            solver.add(z3.Not(pred3._assert(self.submodel, self.interpretation)))
+            unsat = solver.check()
+            self.assertFalse(unsat)
 
     def test_named_sat(self):
         v = datatypes.new_variable()
@@ -91,17 +88,23 @@ class AtomicPredicateTestCase(TestCase):
         s2 = "Same Name"
         pred1 = atomic_predicate.Named(v, s1)
         pred2 = atomic_predicate.Named(v, s2)
-        solver.push()
-        solver.add(pred1._assert(self.submodel, self.interpretation))
-        self.assertTrue(solver.check())
-        status = solver.quick_check_implied(
-                   pred2._assert(self.submodel, self.interpretation))
-        self.assertTrue(status)
-        solver.pop()
+        with solver.context():
+            solver.add(pred1._assert(self.submodel, self.interpretation))
+            self.assertTrue(solver.check())
+            status = solver.quick_check_implied(
+                       pred2._assert(self.submodel, self.interpretation))
+            self.assertTrue(status)
 
-
-
-
+    def test_named_get_model(self):
+        v = datatypes.new_variable()
+        s = "Name"
+        pred = atomic_predicate.Named(v, s)
+        z3pred = pred._assert(self.submodel, self.interpretation)
+        with solver.context():
+            solver.add(z3pred)
+            model = solver.model()
+            self.assertIsNotNone(model[v])
+            self.assertEquals(model[v], datatypes.Variable.variable(1))
 
 class AtomicPredicateToPredicateTestCase(TestCase):
 

@@ -14,6 +14,11 @@ class SolverTestCase(TestCase):
     def test_quick_check_false(self):
         self.assertFalse(solver.quick_check(z3False))
 
+    def test_quick_check_pushes_and_pops(self):
+        self.assertTrue(solver.check())
+        self.assertFalse(solver.quick_check(z3False))
+        self.assertTrue(solver.check())
+
     def test_context(self):
         with solver.context():
             solver.add(z3False)

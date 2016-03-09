@@ -36,7 +36,9 @@ class MySolver(object):
         Returns:
             : Z3 model. TODO: Modify this all so that it returns sets, etc.
         """
-        return self._solver.model()
+        self._solver.check()  # Must check in order to refresh model!
+        z3model = self._solver.model()
+        return z3model
 
     def check(self):
         """Check satisfiability of current satisfiability state.
