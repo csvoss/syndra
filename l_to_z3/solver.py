@@ -10,6 +10,7 @@ class MySolver(object):
 
     def __init__(self):
         self._solver = z3.Solver()
+        self._model_cached = False
         # TODO: Initialize datatypes here
 
     # TODO: Port the below functions to here as methods
@@ -20,6 +21,7 @@ class MySolver(object):
 
     def pop(self):
         """Pop solver state."""
+        self._model_cached = False
         self._solver.pop()
 
     def add(self, assertion):
@@ -28,6 +30,7 @@ class MySolver(object):
         Arguments:
             assertion : Z3-friendly predicate or boolean
         """
+        self._model_cached = False
         return self._solver.add(assertion)
 
     def model(self):
@@ -36,7 +39,8 @@ class MySolver(object):
         Returns:
             : Z3 model. TODO: Modify this all so that it returns sets, etc.
         """
-        self._solver.check()  # Must check in order to refresh model!
+        if not self._model_cached:
+            self.check()  # Must check in order to refresh model!
         z3model = self._solver.model()
         return z3model
 
@@ -47,12 +51,16 @@ class MySolver(object):
             : boolean -- True if sat, False if unsat
         """
         # check() returns either unsat or sat
+        result = self._solver.check()
+        self._model_cached = True
         # sat.r is 1, unsat.r is -1
-        return self._solver.check().r > 0
+        return result.r > 0
 
     @contextmanager
     def context(self):
-        """To do something in between a push and a pop, use a `with context()`."""
+        """To do something in between a push and a pop, use a `with context()`.
+        This is especially useful for avoiding bugs caused by forgetting pop().
+        """
         self.push()
         yield
         self.pop()

@@ -25,6 +25,36 @@ class SolverTestCase(TestCase):
             self.assertFalse(solver.check())
         self.assertTrue(solver.check())
 
+    def test_model_is_refreshed(self):
+        """
+        After a push and a pop, the model should be updated.
+        After adding a new assertion, the model should be updated.
+        """
+        TestVariable = z3.Datatype('TestVariable')
+        TestVariable.declare('test_variable',
+            ('number', z3.IntSort()))
+        TestVariable = TestVariable.create()
+
+        v1 = z3.Const('v1', TestVariable)
+        v2 = z3.Const('v2', TestVariable)
+
+        with solver.context():
+            solver.add(TestVariable.number(v1) == 42)
+            m1 = solver.model()
+            self.assertIsNotNone(m1[v1])
+            self.assertIsNone(m1[v2])
+
+            solver.add(TestVariable.number(v2) == 3)
+            m2 = solver.model()
+            self.assertIsNotNone(m2[v1])
+            self.assertIsNotNone(m2[v2])
+
+        m3 = solver.model()
+        self.assertIsNone(m3[v1])
+        self.assertIsNone(m3[v2])
+
+
+
     def test_add(self):
         with solver.context():
             self.assertTrue(solver.check())
