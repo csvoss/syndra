@@ -49,8 +49,8 @@ def syndra_from_statements(statements):
     return pred
 
 if __name__ == '__main__':
-    print "Simple example from text: MEK phosphorylates ERK."
-    statements = make_statements("MEK phosphorylates ERK")
+    "Simple example from text."
+    statements = make_statements("MEK phosphorylates ERK at serine 222. MEK activates ERK.")
     pred = syndra_from_statements(statements)
     print pred
     print pred.check_sat()
