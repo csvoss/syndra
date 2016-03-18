@@ -126,6 +126,67 @@ class AtomicPredicateTestCase(TestCase):
         pred = atomic_predicate.Rem(v)
         self.assertSat(pred)
 
+    def test_dounlink_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.DoUnlink(x, y)
+        self.assertSat(pred)
+
+    def test_dolink_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.DoLink(x, y)
+        self.assertSat(pred)
+
+    def test_doparent_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.DoParent(x, y)
+        self.assertSat(pred)
+
+    def test_prelabeled_sat(self):
+        x = datatypes.new_variable()
+        y = "Label"
+        pred = atomic_predicate.PreLabeled(x, y)
+        self.assertSat(pred)
+
+    def test_postlabeled_sat(self):
+        x = datatypes.new_variable()
+        y = "Label"
+        pred = atomic_predicate.PostLabeled(x, y)
+        self.assertSat(pred)
+
+    def test_preunlabeled_sat(self):
+        x = datatypes.new_variable()
+        y = "Label"
+        pred = atomic_predicate.PreUnlabeled(x, y)
+        self.assertSat(pred)
+
+    def test_postunlabeled_sat(self):
+        x = datatypes.new_variable()
+        y = "Label"
+        pred = atomic_predicate.PostUnlabeled(x, y)
+        self.assertSat(pred)
+
+    def test_preparent_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.PreParent(x, y)
+        self.assertSat(pred)
+
+    def test_postparent_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.PostParent(x, y)
+        self.assertSat(pred)
+
+    def test_prelink_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.PreLink(x, y)
+        self.assertSat(pred)
+
+    def test_postlink_sat(self):
+        x, y = datatypes.new_variable(), datatypes.new_variable()
+        pred = atomic_predicate.PostLink(x, y)
+        self.assertSat(pred)
+
+
+
 
 class AtomicPredicateToPredicateTestCase(TestCase):
 
@@ -136,3 +197,11 @@ class AtomicPredicateToPredicateTestCase(TestCase):
     def test_bottom_unsat(self):
         status = predicate.Bottom().check_sat()
         self.assertFalse(status)
+
+    def test_add_sat(self):
+        v = datatypes.new_variable()
+        status = predicate.Add(v).check_sat()
+
+    def test_rem_sat(self):
+        v = datatypes.new_variable()
+        status = predicate.Add(v).check_sat()
