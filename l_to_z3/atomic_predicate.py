@@ -223,7 +223,8 @@ class PreHas(AtomicPredicate):
     def _assert(self, submodel, interpretation):
         graph = Model.pregraph(submodel)
         has_function = Graph.has(graph)
-        has_node = z3.Select(has_function, self.x)
+        node = interpretation(self.x)
+        has_node = z3.Select(has_function, node)
         return has_node
 
 
@@ -239,8 +240,11 @@ class PostHas(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return Model.postgraph(submodel).has(
-            interpretation(self.x))
+        graph = Model.postgraph(submodel)
+        has_function = Graph.has(graph)
+        node = interpretation(self.x)
+        has_node = z3.Select(has_function, node)
+        return has_node
 
 
 class Add(AtomicPredicate):
@@ -249,12 +253,22 @@ class Add(AtomicPredicate):
     """
     def __init__(self, x, *args):
         super(Add, self).__init__(*args)
-        _ensure_string(x)
+        _ensure_variable(x)
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return (Model.action(submodel).has(AtomicAction.add_action(interpretation(x)))
-            and not Model.pregraph(submodel).has(interpretation(x)))
+        node = interpretation(self.x)
+
+        action = Model.action(submodel)
+        atomic_action = AtomicAction.add_action(node)
+        has_add_action = z3.Select(action, atomic_action)
+
+        graph = Model.pregraph(submodel)
+        has_function = Graph.has(graph)
+        pregraph_has_node = z3.Select(has_function, node)
+
+        return has_add_action and z3.Not(pregraph_has_node)
+
 
 class Rem(AtomicPredicate):
     """
@@ -266,9 +280,17 @@ class Rem(AtomicPredicate):
         self.x = x
 
     def _assert(self, submodel, interpretation):
-        return (Model.action(submodel).has(AtomicAction.rem_action(interpretation(x)))
-            and Model.pregraph(submodel).has(interpretation(x)))
+        node = interpretation(self.x)
 
+        action = Model.action(submodel)
+        atomic_action = AtomicAction.rem_action(node)
+        has_rem_action = z3.Select(action, atomic_action)
+
+        graph = Model.pregraph(submodel)
+        has_function = Graph.has(graph)
+        pregraph_has_node = z3.Select(has_function, node)
+
+        return has_rem_action and pregraph_has_node
 
 
 # Helper functions.

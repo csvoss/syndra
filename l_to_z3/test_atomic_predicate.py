@@ -106,6 +106,27 @@ class AtomicPredicateTestCase(TestCase):
             self.assertIsNotNone(model[v])
             self.assertEquals(model[v], datatypes.Variable.variable(1))
 
+    def test_prehas_sat(self):
+        v = datatypes.new_variable()
+        pred = atomic_predicate.PreHas(v)
+        self.assertSat(pred)
+
+    def test_posthas_sat(self):
+        v = datatypes.new_variable()
+        pred = atomic_predicate.PostHas(v)
+        self.assertSat(pred)
+
+    def test_add_sat(self):
+        v = datatypes.new_variable()
+        pred = atomic_predicate.Add(v)
+        self.assertSat(pred)
+
+    def test_rem_sat(self):
+        v = datatypes.new_variable()
+        pred = atomic_predicate.Rem(v)
+        self.assertSat(pred)
+
+
 class AtomicPredicateToPredicateTestCase(TestCase):
 
     def test_top_sat(self):
