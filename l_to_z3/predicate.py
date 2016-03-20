@@ -2,7 +2,7 @@ import z3
 
 import atomic_predicate
 from datatypes import _ensure_variable, _ensure_string
-from datatypes import Node, Variable, Model
+from datatypes import Node, Variable, Model, Submodel
 from datatypes import new_graph, new_action, new_modelset, new_interpretation
 from solver import solver
 import z3_helpers
@@ -56,8 +56,9 @@ def has(modelset, g, a):
     postgraph = new_graph('postgraph')
     return z3.Exists([postgraph], modelset(Model.model(g, a, postgraph)))
 
+
 def model_from(g, a):
-    return Model.model(g, a, new_graph('postgraph'))
+    return Submodel(g, a, new_graph('postgraph'))
 
 
 class And(Predicate):

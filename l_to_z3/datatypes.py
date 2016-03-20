@@ -103,6 +103,9 @@ Model.declare('model', ('pregraph', Graph),
                         ('action', Action), ('postgraph', Graph))
 Model = Model.create()
 
+import collections
+Submodel = collections.namedtuple('Submodel', ['pregraph', 'action', 'postgraph'])
+
 
 # This represents a set of sets of <graph, action> pairs -- many possible
 # chemical systems that an L statement could represent.

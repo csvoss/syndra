@@ -1,11 +1,42 @@
 # Get this file working!
 
-from predicate import Implies, And
+import atomic_predicate
+import datatypes
+from labels import ACTIVE, PHOSPHORYLATED
 from macros import directly_phosphorylates, directly_activates, phosphorylated_is_active
+import predicate
+from predicate import Implies, And, Not
+from solver import solver
+import z3
 
 i = directly_phosphorylates("MEK", "ERK")
 ii = phosphorylated_is_active("ERK")
 iii = directly_activates("MEK", "ERK")
+
+
+# Manual Z3 translation of first predicate
+g = datatypes.new_graph('g')
+a = datatypes.new_action('a')
+A = datatypes.new_variable(nickname="MEK")
+B = datatypes.new_variable(nickname="ERK")
+intp = datatypes.new_interpretation()
+subm = predicate.model_from(g, a)
+
+p0 = atomic_predicate.Named(A, "MEK")._assert(subm, intp)
+p1 = atomic_predicate.Named(B, "ERK")._assert(subm, intp)
+
+I = z3.Exists([g, a], z3.Implies(p0,
+        z3.Implies(p1,
+            z3.And(atomic_predicate.PreLabeled(A, ACTIVE)._assert(subm, intp),
+                atomic_predicate.PreUnlabeled(B, PHOSPHORYLATED)._assert(subm, intp),
+                atomic_predicate.PostLabeled(A, ACTIVE)._assert(subm, intp),
+                atomic_predicate.PostLabeled(B, PHOSPHORYLATED)._assert(subm, intp)))))
+
+assert solver.quick_check(I)
+
+
+
+raise StandardError("premature quit")
 
 # Implies(And(i, ii), iii): check a theorem over all possible models
 pred1 = Implies(And(i, ii), iii)
