@@ -267,7 +267,7 @@ class Add(AtomicPredicate):
         has_function = Graph.has(graph)
         pregraph_has_node = z3.Select(has_function, node)
 
-        return has_add_action and z3.Not(pregraph_has_node)
+        return z3.And(has_add_action, z3.Not(pregraph_has_node))
 
 
 class Rem(AtomicPredicate):
@@ -290,7 +290,7 @@ class Rem(AtomicPredicate):
         has_function = Graph.has(graph)
         pregraph_has_node = z3.Select(has_function, node)
 
-        return has_rem_action and pregraph_has_node
+        return z3.And(has_rem_action, pregraph_has_node)
 
 
 # Helper functions.

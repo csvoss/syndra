@@ -9,6 +9,11 @@ def directly_phosphorylates(name_a, name_b):
     """
     A = new_variable(nickname=name_a)
     B = new_variable(nickname=name_b)
+
+    # Okay, so what I actually want this to say is as follows:
+    # Forall Model, Exists Rule in Model, reaction stuff holds over rule
+    # reaction stuff = Forall A B, Named A name_a /\ Named B name_b => prelabeled etc
+
     return ForAll(A, ForAll(B,
                Implies(Named(A, name_a), Implies(Named(B, name_b),
                    And(PreLabeled(A, ACTIVE),
@@ -21,6 +26,7 @@ def phosphorylated_is_active(name_b):
     """
     Macro for 'phosphorylated "B" is active'.
     """
+    # Forall Model, *Forall* Rule in Model, Forall B, Named B named_b => and(...)
     B = new_variable(nickname=name_b)
     return ForAll(B, Implies(Named(B, name_b),
                And(Implies(PreLabeled(B, PHOSPHORYLATED),
@@ -33,6 +39,7 @@ def directly_activates(name_a, name_b):
     """
     Macro for '"A" activates "B"'.
     """
+    # Forall Model, Exists Rule in Model, [...]
     A = new_variable(nickname=name_a)
     B = new_variable(nickname=name_b)
     return ForAll(A, ForAll(B,

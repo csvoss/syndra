@@ -184,24 +184,3 @@ class AtomicPredicateTestCase(TestCase):
         x, y = datatypes.new_variable(), datatypes.new_variable()
         pred = atomic_predicate.PostLink(x, y)
         self.assertSat(pred)
-
-
-
-
-class AtomicPredicateToPredicateTestCase(TestCase):
-
-    def test_top_sat(self):
-        status = predicate.Top().check_sat()
-        self.assertTrue(status)
-
-    def test_bottom_unsat(self):
-        status = predicate.Bottom().check_sat()
-        self.assertFalse(status)
-
-    def test_add_sat(self):
-        v = datatypes.new_variable()
-        status = predicate.Add(v).check_sat()
-
-    def test_rem_sat(self):
-        v = datatypes.new_variable()
-        status = predicate.Add(v).check_sat()
