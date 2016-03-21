@@ -8,30 +8,39 @@ Syndra can also detect when a set of rules are **mutually incompatible**. For ex
 This system works by translating each rule into predicates in the *iota* language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences are then powered by the [z3 theorem prover](https://github.com/Z3Prover/z3).
 
 
-Example Usage
+Constructing predicates
 ---
+
+Here are three different ways to construct a predicate in Syndra; once a predicate
+has been constructed, it can be used to make inferences (see *Manipulating predicates*).
 
 ### From INDRA
 
-###
+[How to use Syndra for INDRA statements, with example usage and outputs.]
 
-TOP LAYER: How to use Syndra: list of commands for macro interfaces, with example usage and outputs
- - Example usage of macro interfaces
- - List of macro interfaces
- - Example usage of macro interfaces *with INDRA in particular*
+### From macros
+
+[List of macro interfaces, with example usage and outputs.]
+
+### Writing an *iota* predicate directly
+
+It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates.
+
+Manipulating predicates
+---
+
+[How to check_sat, get_model, etc. from a predicate.]
 
 How it works
 ---
 
 [Diagram of Syndra dependencies.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
 
-MIDDLE LAYER: How Syndra works: description of the implementation of L predicates, list of predicates
+[DIAGRAM (optional): example of how the AST parsing works, and the interface between predicates and atomic predicates, and how it all gets represented as a z3 formula.]
 
-DIAGRAM (optional): map of dependencies among Python files of Syndra
-
-DIAGRAM (optional): example of how the AST parsing works, and the interface between predicates and atomic predicates, and how it all gets represented as a z3 formula
-
-BOTTOM LAYER: How L works, a brief summary: discuss how L predicates correspond to models in L, and what those models mean as Kappa models.
+*iota* basics
+---
+[How L works, a brief summary: discuss how L predicates correspond to models in L, and what those models mean as Kappa models.]
 
 Installation instructions
 ---
@@ -41,7 +50,8 @@ git clone https://github.com/csvoss/syndra/
 source venv/bin/activate
 pip install requirements.txt
 ```
-You may need to install INDRA dependencies in order to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra) to do so.
+
+You need to install INDRA dependencies in order to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra).
 
 ```
 python interface_indra_to_syndra.py
@@ -54,4 +64,4 @@ cd l_to_z3
 python test_macros.py
 ```
 
-Maybe also add installation instructions and a list of features-in-progress at the end.
+g
