@@ -41,7 +41,7 @@ def example_statements(i):
     with open('examples/syndra_example_%s.pkl' % str(i), 'r') as f:
         return cPickle.load(f).statements
 
-def syndra_from_statements(statements):
+def syndra_from_statements(*statements):
     """Given a list of INDRA statements, produce an L formula, then
     return the corresponding model as determined by Z3."""
     from l_to_z3 import statements_to_predicates
@@ -51,7 +51,7 @@ def syndra_from_statements(statements):
 if __name__ == '__main__':
     "Simple example from text."
     statements = make_statements("MEK phosphorylates ERK at serine 222. MEK activates ERK.")
-    pred = syndra_from_statements(statements)
+    pred = syndra_from_statements(*statements)
     print pred
     print pred.check_sat()
     print ""

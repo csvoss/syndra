@@ -9,7 +9,7 @@ Syndra can also detect when a set of rules are **mutually incompatible**. For ex
 
 This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
 
-![Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
+[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
 
 Constructing predicates
 ---
@@ -19,9 +19,42 @@ has been constructed, it can be used to make inferences (see *Manipulating predi
 
 ### From INDRA
 
-Here I'll show how to use Syndra with INDRA in order to prove the
+Syndra predicates can be automatically generated from certain INDRA statements.
 
-[How to use Syndra for INDRA statements, with example usage and outputs.]
+Here I'll show how to use Syndra with INDRA in order to prove that `MEK phosphorylates MAPK at Thr183`, `MEK phosphorylates MAPK at Tyr185`, and `MAPK, when phosphorylated at Thr183 and Tyr185, is active` all together imply `MEK activates MAPK`.
+
+Suppose we have the following INDRA statements corresponding, in order, to these rules:
+
+```python
+>>> s1
+Phosphorylation(MAP2K1, MAPK1, PhosphorylationThreonine, 183)
+>>> s2
+Phosphorylation(MAP2K1, MAPK1, PhosphorylationTyrosine, 185)
+>>> s3
+ActivityModification(MAPK1, ['PhosphorylationThreonine', 'PhosphorylationTyrosine'], ['183', '185'], increases, Activity)
+>>> s4
+ActivityActivity(MAP2K1, Kinase, increases, MAPK1, Kinase)
+```
+
+We want to show that `s1`, `s2`, and `s3` all together imply `s4`. We can generate a Syndra predicate that combines the first three together:
+
+```python
+>>> from interface_indra_to_syndra import syndra_from_statements
+>>> pred = syndra_from_statements(s1, s2, s3)
+```
+
+Then, we can check that these statements are mutually consistent, and also check that they imply `s4`.
+
+```python
+>>> pred.check_sat()   ## Consistency check
+True
+```
+
+```python
+>>> p4 = syndra_from_statements(s4)   ## Implication check
+>>> pred.check_implies(p4)
+True
+```
 
 ### From macros
 
