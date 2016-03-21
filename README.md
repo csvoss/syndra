@@ -58,10 +58,16 @@ True
 
 ### 2: From Syndra macros
 
-Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules.
+Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules. The current supported macros are `directly_phosphorylates`, `directly_activates`, and `phosphorylated_is_active` – these being sufficient to implement the INDRA motivating example.
 
 ```python
 >>> from engine import macros
+>>> p1 = macros.directly_phosphorylates("A", "B")
+>>> p2 = macros.phosphorylated_is_active("B")
+>>> p3 = macros.directly_activates("A", "B")
+>>> from engine import predicate
+>>> predicate.And(p1, p2).check_implies(p3)
+True
 ```
 
 ### 3: Writing an *iota* predicate directly
@@ -74,7 +80,7 @@ Manipulating predicates
 
 ### Check satisfiability
 
-If a predicate is satisfiable, that means that there is at least one way to build a model that satisfies that predicate.
+If a predicate is satisfiable, that means that there is at least one way to build a model that satisfies that predicate. You can check whether this is true for any given Syndra predicate using `.check_sat()`.
 
 ```python
 >>> satisfiable = predicate.Top()
@@ -87,13 +93,13 @@ False
 
 ### Get model
 
-For a satisfiable predicate, you can also extract a specific example of a model that adheres to that predicate using `pred.get_model()`.
+For a satisfiable predicate, you can also extract a specific example of a model that adheres to that predicate using `.get_model()`.
 
 Currently the models that are returned by this use z3's datatypes; future work may involve translating these to a more friendly format.
 
 ### Check implication
 
-Syndra can check whether one predicate logically implies the truth of another predicate.
+Syndra can verify whether one predicate logically implies the truth of another predicate using `.check_implies(other)`.
 
 ```python
 >>> pred1 = predicate.Top()
