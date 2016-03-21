@@ -15,11 +15,11 @@ Constructing predicates
 ---
 
 Here are three different ways to construct a predicate in Syndra; once a predicate
-has been constructed, it can be used to make inferences (see *Manipulating predicates*, below).
+has been constructed, it can be used to make inferences.
 
-### From INDRA
+### 1: From INDRA
 
-Syndra predicates can be automatically generated from certain INDRA statements.
+[**INDRA**](https://github.com/sorgerlab/indra) is a system that can gather statements (rules) for rule-based modeling from natural language and from databases; these statements are represented by INDRA as Python objects. Syndra predicates can be automatically generated from a subset of INDRA statements. This functionality is provided by `interface_indra_to_syndra.py`.
 
 Here I'll show how to use Syndra with INDRA in order to prove that `MEK phosphorylates MAPK at Thr183`, `MEK phosphorylates MAPK at Tyr185`, and `MAPK, when phosphorylated at Thr183 and Tyr185, is active` all together imply `MEK activates MAPK`.
 
@@ -43,7 +43,7 @@ We want to show that `s1`, `s2`, and `s3` all together imply `s4`. We can genera
 >>> pred = syndra_from_statements(s1, s2, s3)
 ```
 
-Then, we can check that these statements are mutually consistent, and also check that they imply `s4`.
+Then, we can check that these statements are mutually consistent, and also check that they imply `s4`. See *Manipulating predicates* for other things that can be done using predicates.
 
 ```python
 >>> pred.check_sat()   ## Consistency check
@@ -56,11 +56,13 @@ True
 True
 ```
 
-### From macros
+### 2: From Syndra macros
+
+Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules.
 
 [List of macro interfaces, with example usage and outputs.]
 
-### Writing an *iota* predicate directly
+### 3: Writing an *iota* predicate directly
 
 It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. See ***iota* basics**, below, for a description of what these predicates mean and how they work.
 
