@@ -1,21 +1,25 @@
 Syndra
 ===
 
-Syndra is an **inference engine** for rule-based biological models. It supports making inferences over sets of modeling rules, which allows **redundancies** to be detected and eliminated from those rules. For example, if we have the rules `MEK phosphorylates MAPK` and `MAPK, when phosphorylated, is active`, Syndra can confirm that these rules imply `MEK activates MAPK`.
+Syndra is an **inference engine** for rule-based biological models.
+
+It supports making inferences over sets of modeling rules, which allows **redundancies** to be detected and eliminated from those rules. For example, if we have the rules `MEK phosphorylates MAPK` and `MAPK, when phosphorylated, is active`, Syndra can confirm that these rules imply `MEK activates MAPK`.
 
 Syndra can also detect when a set of rules are **mutually incompatible**. For example, Syndra can detect that no model is compatible with the two rules `A, when phosphorylated, is active` and `A, when phosphorylated, is inactive` both at once.
 
-This system works by translating each rule into predicates in the *iota* language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences are then powered by the [z3 theorem prover](https://github.com/Z3Prover/z3).
+This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
 
-[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
+![Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
 
 Constructing predicates
 ---
 
 Here are three different ways to construct a predicate in Syndra; once a predicate
-has been constructed, it can be used to make inferences (see *Manipulating predicates*).
+has been constructed, it can be used to make inferences (see *Manipulating predicates*, below).
 
 ### From INDRA
+
+Here I'll show how to use Syndra with INDRA in order to prove the
 
 [How to use Syndra for INDRA statements, with example usage and outputs.]
 
@@ -25,7 +29,7 @@ has been constructed, it can be used to make inferences (see *Manipulating predi
 
 ### Writing an *iota* predicate directly
 
-It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates.
+It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. See ***iota* basics**, below, for a description of what these predicates mean and how they work.
 
 Manipulating predicates
 ---
