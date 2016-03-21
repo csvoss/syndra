@@ -64,12 +64,42 @@ Syndra provides a number of *macros*, ways to easily construct Syndra predicates
 
 ### 3: Writing an *iota* predicate directly
 
-It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. See ***iota* basics**, below, for a description of what these predicates mean and how they work.
+It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. See ***iota*** **basics**, below, for a description of what these predicates mean and how they work.
+
 
 Manipulating predicates
 ---
 
-[How to check_sat, get_model, etc. from a predicate.]
+### Check satisfiability
+
+If a predicate is satisfiable, that means that there is at least one way to build a model that satisfies that predicate.
+
+```python
+>>> satisfiable = predicate.Top()
+>>> satisfiable.check_sat()
+True
+>>> unsatisfiable = predicate.Bottom()
+>>> unsatisfiable.check_sat()
+False
+```
+
+### Get model
+
+For a satisfiable predicate, you can also extract a specific example of a model that adheres to that predicate using `pred.get_model()`.
+
+Currently the models that are returned by this use z3's datatypes; future work may involve translating these to a more friendly format.
+
+### Check implication
+
+Syndra can check whether one predicate logically implies the truth of another predicate.
+
+```python
+>>> pred1 = predicate.Top()
+>>> pred2 = predicate.Top()
+>>> pred1.check_implies(pred2)
+True
+```
+
 
 
 

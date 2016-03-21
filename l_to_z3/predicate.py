@@ -22,26 +22,22 @@ class Predicate(object):
         # necessarily be a complete set. Actions should also behave as sets
         # (sets of atomic actions).
         with solver.context():
-            modelset = new_modelset()
-            interpretation = new_interpretation()
-            predicate = self._assert(modelset, interpretation)
+            predicate = self.get_predicate()
             solver.add(predicate)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
             return solver.model()
-            # TODO: Change the form of this output so that it's what
-            # my tests specified: sets, etc. Do that either here or in solver.
 
     def check_sat(self):
         # returns a boolean
-        with solver.context():
-            modelset = new_modelset()
-            interpretation = new_interpretation()
-            predicate = self._assert(modelset, interpretation)
-            solver.add(predicate)
-            return solver.check()
+        return solver.quick_check(self.get_predicate())
+        # with solver.context():
+        #     predicate = self.get_predicate()
+        #     solver.add(predicate)
+        #     return solver.check()
 
     def get_predicate(self):
+        # returns a z3 predicate
         modelset = new_modelset()
         interpretation = new_interpretation()
         predicate = self._assert(modelset, interpretation)
@@ -51,6 +47,14 @@ class Predicate(object):
         # model is something representing a set of sets of pairs
         # this is only used privately, in check_sat and/or get_model
         raise NotImplementedError("Implement _assert in subclasses.")
+
+    def check_implies(self, other_predicate):
+        # check that this predicate implies other_predicate
+        p1 = self.get_predicate()
+        p2 = other_predicate.get_predicate()
+        pred = z3.Implies(p1, p2)
+        return solver.quick_check(pred)
+        
 
 def has(modelset, g, a):
     postgraph = new_graph('postgraph')
