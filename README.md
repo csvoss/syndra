@@ -9,7 +9,7 @@ Syndra can also detect when a set of rules are **mutually incompatible**. For ex
 
 This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
 
-[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
+[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/engine/dependencies.pdf)
 
 Constructing predicates
 ---
@@ -60,11 +60,13 @@ True
 
 Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules.
 
-[List of macro interfaces, with example usage and outputs.]
+```python
+>>> from engine import macros
+```
 
 ### 3: Writing an *iota* predicate directly
 
-It is also possible to construct your own *iota* predicates using Syndra. Consult `l_to_z3/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. See ***iota*** **basics**, below, for a description of what these predicates mean and how they work.
+It is also possible to construct your own macros by writing *iota* predicates using Syndra. Consult `engine/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates. <!--See ***iota*** **basics**, below, for a description of what these predicates mean and how they work.-->
 
 
 Manipulating predicates
@@ -100,12 +102,8 @@ Syndra can check whether one predicate logically implies the truth of another pr
 True
 ```
 
-
-
-
-*iota* basics
----
-[How L works, a brief summary: discuss how L predicates correspond to models in L, and what those models mean as Kappa models.]
+<!--*iota* basics
+[How L works, a brief summary: discuss how L predicates correspond to models in L, and what those models mean as Kappa models.]-->
 
 Installation instructions
 ---
@@ -125,6 +123,6 @@ python interface_indra_to_syndra.py
 To test Syndra macros more directly, without passing through INDRA:
 
 ```
-cd l_to_z3
+cd engine
 python test_macros.py
 ```
