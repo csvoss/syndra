@@ -22,11 +22,8 @@ B = datatypes.new_variable(nickname="ERK")
 intp = datatypes.new_interpretation()
 subm = predicate.model_from(g, a)
 
-p0 = atomic_predicate.Named(A, "MEK")._assert(subm, intp)
-p1 = atomic_predicate.Named(B, "ERK")._assert(subm, intp)
-
-I = z3.Exists([g, a], z3.Implies(p0,
-        z3.Implies(p1,
+I = z3.Exists([g, a], z3.Implies(atomic_predicate.Named(A, "MEK")._assert(subm, intp),
+        z3.Implies(atomic_predicate.Named(B, "ERK")._assert(subm, intp),
             z3.And(atomic_predicate.PreLabeled(A, ACTIVE)._assert(subm, intp),
                 atomic_predicate.PreUnlabeled(B, PHOSPHORYLATED)._assert(subm, intp),
                 atomic_predicate.PostLabeled(A, ACTIVE)._assert(subm, intp),
@@ -34,7 +31,18 @@ I = z3.Exists([g, a], z3.Implies(p0,
 
 assert solver.quick_check(I)
 
+# Manual Z3 predicate of second predicate
+A = datatypes.new_variable(nickname="MEK")
+intp = datatypes.new_interpretation()
+subm = predicate.model_from(g, a)
 
+II = z3.ForAll([g, a], z3.Implies(atomic_predicate.Named(A, "MEK")._assert(subm, intp),
+    z3.And(z3.Implies(atomic_predicate.PreLabeled(B, PHOSPHORYLATED)._assert(subm, intp),
+                atomic_predicate.PreLabeled(B, ACTIVE)._assert(subm, intp)),
+        z3.Implies(atomic_predicate.PostLabeled(B, PHOSPHORYLATED)._assert(subm, intp),
+                atomic_predicate.PostLabeled(B, ACTIVE)._assert(subm, intp)))))
+
+assert solver.quick_check(II)
 
 # Manual Z3 translation of third predicate
 g = datatypes.new_graph('g')
@@ -44,11 +52,8 @@ B = datatypes.new_variable(nickname="ERK")
 intp = datatypes.new_interpretation()
 subm = predicate.model_from(g, a)
 
-p0 = atomic_predicate.Named(A, "MEK")._assert(subm, intp)
-p1 = atomic_predicate.Named(B, "ERK")._assert(subm, intp)
-
-III = z3.Exists([g, a], z3.Implies(p0,
-        z3.Implies(p1,
+III = z3.Exists([g, a], z3.Implies(atomic_predicate.Named(A, "MEK")._assert(subm, intp),
+        z3.Implies(atomic_predicate.Named(B, "ERK")._assert(subm, intp),
             z3.And(atomic_predicate.PreLabeled(A, ACTIVE)._assert(subm, intp),
                 atomic_predicate.PreUnlabeled(B, ACTIVE)._assert(subm, intp),
                 atomic_predicate.PostLabeled(A, ACTIVE)._assert(subm, intp),
@@ -56,7 +61,13 @@ III = z3.Exists([g, a], z3.Implies(p0,
 
 assert solver.quick_check(III)
 
-raise StandardError("premature quit")
+and_I_II = z3.And(I, II)
+assert solver.quick_check(and_I_II)
+
+implication = z3.Implies(z3.And(I, II), III)
+assert solver.quick_check(implication)
+
+raise StandardError("All new tests pass! Old tests, from this line on.")
 
 # Implies(And(i, ii), iii): check a theorem over all possible models
 pred1 = Implies(And(i, ii), iii)
