@@ -7,6 +7,7 @@ Syndra can also detect when a set of rules are **mutually incompatible**. For ex
 
 This system works by translating each rule into predicates in the *iota* language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences are then powered by the [z3 theorem prover](https://github.com/Z3Prover/z3).
 
+[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
 
 Constructing predicates
 ---
@@ -31,12 +32,7 @@ Manipulating predicates
 
 [How to check_sat, get_model, etc. from a predicate.]
 
-How it works
----
 
-[Diagram of Syndra dependencies.](https://github.com/csvoss/syndra/blob/master/l_to_z3/dependencies.pdf)
-
-[DIAGRAM (optional): example of how the AST parsing works, and the interface between predicates and atomic predicates, and how it all gets represented as a z3 formula.]
 
 *iota* basics
 ---
@@ -63,5 +59,3 @@ To test Syndra macros more directly, without passing through INDRA:
 cd l_to_z3
 python test_macros.py
 ```
-
-g
