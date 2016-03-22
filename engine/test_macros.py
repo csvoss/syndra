@@ -16,7 +16,6 @@ assert not predicate.Exists(predicate.Bottom()).check_sat()
 assert predicate.Exists(predicate.Top()).check_sat()
 
 
-
 print "Predicate I: MEK directly phosphorylates ERK in a single step.\nTranslated to z3:"
 i = directly_phosphorylates("MEK", "ERK")
 print i.get_predicate()
@@ -29,6 +28,7 @@ print "\nPredicate III: MEK directly activates ERK in a single step.\nTranslated
 iii = directly_activates("MEK", "ERK")
 print iii.get_predicate()
 
+
 print "\nEach of these predicates is satisfiable (True) on their own: checking..."
 assert i.check_sat()
 print i.check_sat()
@@ -36,6 +36,7 @@ assert ii.check_sat()
 print ii.check_sat()
 assert iii.check_sat()
 print iii.check_sat()
+
 
 print "\nI and II are satisfiable together: checking And(I, II)..."
 and_i_ii = predicate.And(i, ii)

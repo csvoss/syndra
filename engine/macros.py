@@ -18,7 +18,6 @@ def directly_phosphorylates(name_a, name_b):
     # reaction stuff = Forall A B, Named A name_a /\ Named B name_b => prelabeled etc
     intp = datatypes.new_interpretation()
 
-    # Manual implementation
     return predicate.Exists(predicate.Implies(predicate.Named(A, name_a),
             predicate.Implies(predicate.Named(B, name_b),
                 predicate.And(predicate.PreLabeled(A, ACTIVE),
@@ -37,7 +36,6 @@ def phosphorylated_is_active(name_b):
 
     intp = datatypes.new_interpretation()
 
-    # Manual implementation
     return predicate.ForAll(predicate.Implies(predicate.Named(B, name_b),
         predicate.And(predicate.Implies(predicate.PreLabeled(B, PHOSPHORYLATED),
                     predicate.PreLabeled(B, ACTIVE)),
