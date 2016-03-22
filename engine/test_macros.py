@@ -67,18 +67,17 @@ assert solver.quick_check(and_I_II)
 implication = z3.Implies(z3.And(I, II), III)
 assert solver.quick_check(implication)
 
-raise StandardError("All new tests pass! Old tests, from this line on.")
 
-# Implies(And(i, ii), iii): check a theorem over all possible models
-pred1 = Implies(And(i, ii), iii)
-assert pred1.check_sat() # This should be true.
-pred2 = Not(Implies(And(i, ii), iii))
-assert pred2.check_sat() # This should be false.
-
-pred3 = And(i, ii, iii)
-assert pred3.check_sat() # This should be true.
-pred4 = Not(And(i, ii, iii))
-assert pred4.check_sat() # This should be true.
+# # Implies(And(i, ii), iii): check a theorem over all possible models
+# pred1 = Implies(And(i, ii), iii)
+# assert pred1.check_sat() # This should be true.
+# pred2 = Not(Implies(And(i, ii), iii))
+# assert pred2.check_sat() # This should be false.
+#
+# pred3 = And(i, ii, iii)
+# assert pred3.check_sat() # This should be true.
+# pred4 = Not(And(i, ii, iii))
+# assert pred4.check_sat() # This should be true.
 
 # inconsistencies in a model: And(i, ii, iii) and see what happens
 
