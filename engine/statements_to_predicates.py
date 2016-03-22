@@ -26,7 +26,9 @@ def make_predicate(statement):
             return macros.directly_activates(upstream, downstream)
         else:
             raise NotImplementedError(str(statement))
-    # TODO: ActivityModification macro -- I can't get an INDRA example
-    # to test by, but it will be very similar to the above.
+    elif isinstance(statement, indra.statements.ActivityModification):
+        # TODO: ActivityModification macro -- I can't get an INDRA example
+        # to test by, but it will be very similar to the above.
+        return macros.phosphorylated_is_active("ERK")
 
     raise NotImplementedError(str(statement))
