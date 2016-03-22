@@ -9,7 +9,6 @@ import z3
 # Sanity checks.
 assert not predicate.Bottom().check_sat()
 assert predicate.Top().check_sat()
-print predicate.And(predicate.Bottom(), predicate.Top()).get_predicate()
 assert not predicate.And(predicate.Bottom(), predicate.Top()).check_sat()
 assert not predicate.ForAll(predicate.Bottom()).check_sat()
 assert predicate.ForAll(predicate.Top()).check_sat()
