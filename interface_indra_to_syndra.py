@@ -57,9 +57,9 @@ if __name__ == '__main__':
     print statements
 
     print "\nThen we generate a predicate from these statements. As a Z3 predicate:"
-    z3pred = syndra_from_statements(*statements)
-    print z3pred
+    pred = syndra_from_statements(*statements)
+    print pred.get_predicate()
 
     print "\nThese statements should be satisfiable (i.e. mutually consistent):"
-    print solver.quick_check(z3pred)
+    print pred.check_sat()
     print ""
