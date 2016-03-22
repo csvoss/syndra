@@ -1,15 +1,18 @@
 import indra
 import macros
 import predicate
+import z3
 
 def make_predicate_many(statements):
+    # TODO: Switch this back to using predicate.Top and predicate.And
+    # once the macros are returning Predicate predicates instead of z3 predicates.
     if len(statements) == 0:
-        return predicate.Top()
+        return z3.And(True, True)
     elif len(statements) == 1:
         return make_predicate(statements[0])
     else:
         predicates = [make_predicate(statement) for statement in statements]
-        return predicate.And(*predicates)
+        return z3.And(*predicates)
 
 def make_predicate(statement):
     if isinstance(statement, indra.statements.Phosphorylation):

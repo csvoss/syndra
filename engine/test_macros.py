@@ -1,5 +1,3 @@
-# Get this file working!
-
 import atomic_predicate
 import datatypes
 from labels import ACTIVE, PHOSPHORYLATED

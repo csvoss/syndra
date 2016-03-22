@@ -2,6 +2,8 @@
 Run this file to demo INDRA -> Syndra.
 """
 
+from engine.solver import solver
+
 # These are just to quickly detect and tell the user about some issues which
 # caused me errors during my test-runs; the issues are easy to fix.
 try:
@@ -49,9 +51,15 @@ def syndra_from_statements(*statements):
     return pred
 
 if __name__ == '__main__':
-    "Simple example from text."
+    print "\nSimple example from INDRA: we pass the raw text 'MEK phosphorylates ERK at serine 222. MEK activates ERK.' into INDRA. INDRA thinks..."
     statements = make_statements("MEK phosphorylates ERK at serine 222. MEK activates ERK.")
-    pred = syndra_from_statements(*statements)
-    print pred
-    print pred.check_sat()
+    print "\nINDRA returned the following statements:"
+    print statements
+
+    print "\nThen we generate a predicate from these statements. As a Z3 predicate:"
+    z3pred = syndra_from_statements(*statements)
+    print z3pred
+
+    print "\nThese statements should be satisfiable (i.e. mutually consistent):"
+    print solver.quick_check(z3pred)
     print ""
