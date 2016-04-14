@@ -9,11 +9,11 @@ from engine.solver import solver
 try:
     import rdflib
 except:
-    raise StandardError("Run `source venv/bin/activate` before running this file.")
+    raise StandardError("Run `source venv/bin/activate` and pip install `requirements.txt` before running this file.")
 try:
-    import indra
+    from indra.trips import trips_api
 except:
-    raise StandardError("indra must be a module accessible from this file")
+    raise StandardError("Add syndra/indra_submodule to your PYTHONPATH.")
 
 
 def make_statements(text):
