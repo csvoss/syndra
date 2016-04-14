@@ -25,7 +25,7 @@ def make_predicate(statement):
         # <enzyme> activates <substrate>
         upstream = str(statement.subj.name)
         downstream = str(statement.obj.name)
-        if statement.subj_activity == 'act' and statement.obj_activity == 'act':
+        if statement.subj_activity == 'Activity' and statement.obj_activity == 'Activity':
             return macros.directly_activates(upstream, downstream)
         else:
             raise NotImplementedError(str(statement))
