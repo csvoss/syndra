@@ -62,6 +62,24 @@ def directly_activates(name_a, name_b):
                     predicate.PostLabeled(B, ACTIVE)))))
 
 
+# Hector's example.
+def negative_residue_behaves_as_if_phosphorylated():
+    # For every rule with a phosphate label on site S of protein, there exists a
+    # rule doing the same thing which applies to the protein with site S mutated
+    # to have a negative amino acid residue.
+    # (Whether or not any mutant protein is present at the start of the system
+    # is a separate concern, irrelevant to this question.)
+    pass
+
+# Then I should be able to assert that if the above global rule is true, then
+# phosphorylated A binds B => mutated-A binds B.
+def binds(name_a, name_b):
+
+
+
+
+
+
 # Other things: more specific phosphorylation (serine-phosphorylated;
 # serine-phosphorylated-at). Can prove theorems about this.
 
