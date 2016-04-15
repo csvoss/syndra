@@ -8,7 +8,7 @@ from labels import ACTIVE, PHOSPHORYLATED
 
 def directly_phosphorylates(name_a, name_b):
     """
-    Macro for '"A" phosphorylates "B"'.
+    Macro for 'activated "A" phosphorylates "B"'.
     """
     A = new_variable(nickname=name_a)
     B = new_variable(nickname=name_b)
@@ -46,7 +46,7 @@ def phosphorylated_is_active(name_b):
 # n.b.: this is ActivityActivity
 def directly_activates(name_a, name_b):
     """
-    Macro for '"A" activates "B"'.
+    Macro for 'activated "A" activates "B"'.
     """
     # Forall Model, Exists Rule in Model, [...]
     A = new_variable(nickname=name_a)
@@ -74,10 +74,14 @@ def negative_residue_behaves_as_if_phosphorylated():
 # Then I should be able to assert that if the above global rule is true, then
 # phosphorylated A binds B => mutated-A binds B.
 def binds(name_a, name_b):
+    """Rule for 'A binds B'."""
+    A = new_variable(nickname=name_a)
+    B = new_variable(nickname=name_b)
 
-
-
-
+    return predicate.Exists(predicate.Implies(predicate.Named(A, name_a),
+            predicate.Implies(predicate.Named(B, name_b),
+                predicate.Not(predicate.And(predicate.PreLink(A, B)),
+                    predicate.PostLink(A, B)))))
 
 
 # Other things: more specific phosphorylation (serine-phosphorylated;
