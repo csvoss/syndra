@@ -11,8 +11,8 @@ def typeStatement(statement):
     if isinstance(statement, Phosphorylation):
         types = { 'sub': typeMappings[statement.sub.name]
                 , 'enz': typeMappings[statement.enz.name]
-                , 'mod': statement.mod
-                , 'mod_pos': statement.mod_pos } # TODO: Type this
+                , 'residue': statement.residue
+                , 'position': statement.position } # TODO: Type this
         return types
     else:
         raise Exception('Unimplemented', statement)
@@ -76,19 +76,22 @@ def moreGeneral((aType, a), (bType, b)):
     The structure of the type information is:
     types = { 'sub': typeMappings[statement.sub.name]
             , 'enz': typeMappings[statement.enz.name]
-            , 'mod': statement.mod
-            , 'mod_pos': statement.mod_pos }
+            , 'residue': statement.residue
+            , 'position': statement.position }
     """
     def moreGeneralMod(aMod, bMod):
-        if aMod and bMod:
-            return aMod == 'Phosphorylation' and \
-                len(aMod) < len(bMod) 
+        if aMod and not bMod:
+            return False
+        elif bMod and not aMod:
+            return True
+        else:
+            return False
     def moreGeneralPos(aPos, bPos):
         return aPos != None and bPos == None
     return infamily(bType['sub'], aType['sub']) and \
         infamily(bType['enz'], aType['enz']) and \
-        moreGeneralMod(aType['mod'], bType['mod']) and \
-        moreGeneralPos(aType['mod_pos'], bType['mod_pos'])
+        moreGeneralMod(aType['residue'], bType['residue']) and \
+        moreGeneralPos(aType['position'], bType['position'])
 
 def mkTrees(clusters):
     """
