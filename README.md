@@ -113,8 +113,9 @@ Installation instructions
 
 ```
 git clone https://github.com/csvoss/syndra/
+cd syndra
 source venv/bin/activate
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 You need to install INDRA dependencies in order to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra).
