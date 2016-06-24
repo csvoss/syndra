@@ -43,7 +43,7 @@ def phosphorylated_is_active(name_b):
                     predicate.PostLabeled(B, ACTIVE)))))
 
 
-# n.b.: this is ActivityActivity
+# n.b.: this is Activation
 def directly_activates(name_a, name_b):
     """
     Macro for '"A" activates "B"'.

@@ -21,7 +21,7 @@ def make_predicate(statement):
         enzyme = statement.enz.name.encode('utf-8')
         substrate = statement.sub.name.encode('utf-8')
         return macros.directly_phosphorylates(enzyme, substrate)
-    elif isinstance(statement, indra.statements.ActivityActivity):
+    elif isinstance(statement, indra.statements.Activation):
         # <enzyme> activates <substrate>
         upstream = statement.subj.name.encode('utf-8')
         downstream = statement.obj.name.encode('utf-8')
