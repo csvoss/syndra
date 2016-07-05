@@ -52,3 +52,5 @@ print "\nI and II and III are satisfiable together: checking And(I, II, III)..."
 and_i_ii_iii = predicate.And(i, ii, iii)
 assert and_i_ii_iii.check_sat()
 print and_i_ii_iii.check_sat()
+
+print "\nHector's examples"
