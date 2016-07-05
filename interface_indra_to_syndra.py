@@ -24,7 +24,7 @@ def make_statements(text):
 
 def make_model(text):
     """Given text, return an INDRA model."""
-    from indra.pysb_assembler import PysbAssembler
+    from indra.assemblers import PysbAssembler
     pa = PysbAssembler()
     pa.add_statements(make_statements(text))
     model = pa.make_model(policies='two_step')
@@ -37,7 +37,7 @@ def make_kappa(text):
 
 def example_statements(i):
     """Unpickle and return statements from the ith preexisting INDRA example."""
-    from indra.pysb_assembler import PysbAssembler
+    from indra.assemblers import PysbAssembler
     import cPickle
     # i: the number of the example to load
     with open('examples/syndra_example_%s.pkl' % str(i), 'r') as f:
