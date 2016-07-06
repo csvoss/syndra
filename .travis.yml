@@ -1,4 +1,18 @@
 language: python
 python:
   - "2.7"
-script: python -m unittest engine.test_solver
+install:
+  - python -m pip install -U pip
+  - python -m easy_install -U setuptools
+  # Z3
+  - git clone https://github.com/Z3Prover/z3
+  - cd z3
+  - python scripts/mk_make.py --python
+  - cd build
+  - make
+  - make install
+  # requirements.txt
+  - cd ../..
+  - pip install -r requirements.txt
+script:
+  python -m unittest engine.test_solver

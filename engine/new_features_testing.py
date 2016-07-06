@@ -1,12 +1,3 @@
-
-
-# E. HRAS: agent. E. RAF: agent. E. MEK1: agent. E. ERK1: agent. E. SAF1: agent.
-#   (E. r: rule. (HRAS_GTP-RAF in r.LHS) /\ (MEK1 in r.LHS) /\ (MEK1_P in r.RHS) ) /\
-#   (E. r: rule. (MEK1_P in r.LHS) /\ (ERK1 in r.LHS) /\ (ERK1_P in r.RHS) ) /\
-#   (E. r: rule. (ERK1_P in r.LHS) /\ (SAF1 in r.LHS) /\ (SAF1_P in r.RHS) )
-
-# Datatypes!
-
 import z3
 from solver import solver
 from string_interner import string_interner

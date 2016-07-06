@@ -1,10 +1,8 @@
 """
 Global Z3 solver for use by other files.
 """
-
 from contextlib import contextmanager
 import z3
-
 
 class MySolver(object):
 
@@ -85,7 +83,5 @@ class MySolver(object):
                 return False   # satisfiable NOT(x) --> invalid x
             else:
                 return True  # unsatisfiable NOT(x) --> valid x
-
-
 
 solver = MySolver()

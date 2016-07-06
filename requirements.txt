@@ -1,4 +1,3 @@
-setuptools>=18.3.2
 networkx
 jsonschema
 pandas
@@ -6,5 +5,3 @@ pysb
 objectpath
 BeautifulSoup
 rdflib
-Cython
-jnius_indra
