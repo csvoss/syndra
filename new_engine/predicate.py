@@ -37,42 +37,33 @@ def _ensure_predicate(thing):
     if not isinstance(thing, Predicate):
         raise ValueError("Argument must be instance of Predicate. Instead, got %s" % repr(thing))
 
-
-def _multi_to_binary(preds, classref):
-    assert len(preds) >= 2, ("Cannot apply %s to one predicate only" %
-                             str(classref))
-    for p in preds:
-        _ensure_predicate(p)
-    p1 = preds[0]
-    if len(preds) == 2:
-        p2 = preds[1]
-    else:
-        assert len(preds[1:]) >= 2
-        p2 = classref(*preds[1:])
-    return (p1, p2)
-
-
 class And(Predicate):
     def __init__(self, *preds):
-        self.p1, self.p2 = _multi_to_binary(preds, And)
+        for pred in preds:
+            _ensure_predicate(pred)
+        self.preds = preds
 
     def _assert(self, model, interpretation):
-        return z3.And(self.p1._assert(model, interpretation),
-                      self.p2._assert(model, interpretation))
+        return z3.And(*map(lambda p: p._assert(model, interpretation),
+                           self.preds))
 
 class Not(Predicate):
     def __init__(self, pred):
+        _ensure_predicate(pred)
         self.pred = pred
+
     def _assert(self, model, interpretation):
         return z3.Not(self.pred._assert(model, interpretation))
 
 class Or(Predicate):
     def __init__(self, *preds):
-        self.p1, self.p2 = _multi_to_binary(preds, And)
+        for pred in preds:
+            _ensure_predicate(pred)
+        self.preds = preds
 
     def _assert(self, model, interpretation):
-        return z3.Or(self.p1._assert(model, interpretation),
-                      self.p2._assert(model, interpretation))
+        return z3.Or(*map(lambda p: p._assert(model, interpretation),
+                          self.preds))
 
 
 class ModelHasRule(Predicate):
