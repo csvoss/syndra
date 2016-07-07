@@ -66,6 +66,15 @@ class Not(Predicate):
     def _assert(self, model, interpretation):
         return z3.Not(self.pred._assert(model, interpretation))
 
+class Or(Predicate):
+    def __init__(self, *preds):
+        self.p1, self.p2 = _multi_to_binary(preds, And)
+
+    def _assert(self, model, interpretation):
+        return z3.Or(self.p1._assert(model, interpretation),
+                      self.p2._assert(model, interpretation))
+
+
 class ModelHasRule(Predicate):
     def __init__(self, rule_function):
         self.rule_function = rule_function
@@ -90,3 +99,15 @@ class PostgraphHas(Predicate):
 
     def _assert(self, model, interpretation):
         return self.structure._assert(datatypes.Rule.postgraph(self.rule), interpretation)
+
+class Top(Predicate):
+    def __init__(self):
+        pass
+    def _assert(self, model, interpretation):
+        return z3.Or(True)
+
+class Bottom(Predicate):
+    def __init__(self):
+        pass
+    def _assert(self, model, interpretation):
+        return z3.And(False)
