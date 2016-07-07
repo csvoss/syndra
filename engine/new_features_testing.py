@@ -116,6 +116,12 @@ class And(Predicate):
         return z3.And(self.p1._assert(model, interpretation),
                       self.p2._assert(model, interpretation))
 
+class Not(Predicate):
+    def __init__(self, pred):
+        self.pred = pred
+    def _assert(self, model, interpretation):
+        return z3.Not(self.pred._assert(model, interpretation))
+
 class ModelHasRule(Predicate):
     def __init__(self, rule_function):
         self.rule_function = rule_function
@@ -265,3 +271,20 @@ if __name__ == '__main__':
 
     print predicate.check_sat()
     print predicate.get_model()
+
+    predicate2 = And(
+        ModelHasRule(lambda r: And(
+                PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
+                PregraphHas(r, MEK1),
+                PostgraphHas(r, MEK1.labeled(phosphate))
+        )),
+        Not(
+            ModelHasRule(lambda r: And(
+                    PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
+                    PregraphHas(r, MEK1),
+                    PostgraphHas(r, MEK1.labeled(phosphate))
+            ))
+        ))
+
+    print predicate2.check_sat()
+    print predicate2.get_model()
