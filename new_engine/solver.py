@@ -69,6 +69,16 @@ class MySolver(object):
             self.add(assertion)
             return self.check()
 
+    def quick_check_sat(self, assertion):
+        return self.quick_check(assertion)
+
+    def quick_check_valid(self, assertion):
+        """Check that a predicate is valid - that its negation is unsat."""
+        with self.context():
+            assert self.check(), "Error: cannot check validity in unsat env"
+            self.add(z3.Not(assertion))
+            return not self.check() # if negation is unsat, then it's valid
+
     def quick_check_implied(self, assertion):
         """Add an assertion only temporarily, and check that the assertion
         is valid -- that is, necessarily true -- given current state."""
