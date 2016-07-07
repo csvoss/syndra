@@ -5,3 +5,4 @@ pysb
 objectpath
 BeautifulSoup
 rdflib
+nose
