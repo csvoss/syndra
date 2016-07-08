@@ -2,20 +2,27 @@ import z3
 
 from solver import MySolver
 
+solver = MySolver()
+
+
 # Problem statement: generalized causality, for candidate inferences
 # Inputs: Context, New Statement, Candidate inference
 # Output: Boolean for yes/no on whether Candidate Inference is an inference that we could make which, combined with the context, ensures that New Statement must be true.
 # That is, the output = True if (Context /\ Candidate Inference /\ Not(New Statement)) is not satisfiable. Also, to avoid accepting False as a candidate inference, we must also verify that (Context /\ Candidate Inference /\ New Statement) is satisfiable. Also, we must not have "known" Candidate Inference before, so (Context /\ Not(Candidate Inference)) must be satisfiable.
 
-def is_candidate_inference(context, new_statement, inference):
-    explains_statement = z3.Implies(z3.And(context, inference), new_statement)  # must be valid
-    isnt_straight_up_false = z3.And(context, inference, new_statement) # must be satisfiable
-    isnt_vacuously_true = z3.And(context, z3.Not(inference))
+def explains_statement(context, new_statement, inference):
+    return solver.quick_check_valid(z3.Implies(z3.And(context, inference), new_statement))
 
-    s = MySolver()
-    return (s.quick_check_valid(explains_statement) and
-            s.quick_check_sat(isnt_straight_up_false) and
-            s.quick_check_sat(isnt_vacuously_true))
+def isnt_straight_up_false(context, new_statement, inference):
+    return solver.quick_check_sat(z3.And(context, inference, new_statement))
+
+def isnt_vacuously_true(context, new_statement, inference):
+    return (solver.quick_check_sat(z3.And(context, z3.Not(inference))))
+
+def is_candidate_inference(context, new_statement, inference):
+    return (explains_statement(context, new_statement, inference) and
+            isnt_straight_up_false(context, new_statement, inference) and
+            isnt_vacuously_true(context, new_statement, inference))
 
 # Problem statement: generalized causality, for candidate unique inferences
 # Inputs: Context, New Statement, Candidate Unique Inference (CUI)
@@ -53,41 +60,21 @@ if __name__ == '__main__':
 
     # Context := T
     # New Statement := P
-    # Q, R, and S are Candidate Inferences
-    # Only Q is a Candidate Unique Inference
+    # R and S are Candidate Inferences
+    # Only Q is a Candidate Unique Inference? -- No! Q is vacuously true.
+    # Need to find another example to test.
 
     context = t
     new_statement = p
-    cis = ('q', 'r', 's')
-    cuis = ('q',)
+    cis = ('p', 'q', 'r', 's')
+    cuis = ('p', 'q')
 
     for varname, var in vars.iteritems():
         if varname in cuis:
             assert is_candidate_unique_inference(context, new_statement, var), varname
         else:
-            pass
-            # assert not is_candidate_unique_inference(context, new_statement, var), varname
+            assert not is_candidate_unique_inference(context, new_statement, var), varname
         if varname in cis:
             assert is_candidate_inference(context, new_statement, var), varname
         else:
             assert not is_candidate_inference(context, new_statement, var), varname
-
-    # Context := P
-    # New Statement := True
-    # Nothing is a Candidate Inference
-    # Nothing is a Candidate Unique Inference
-    #
-    # Context := P
-    # New Statement := False
-    # Nothing is a Candidate Inference
-    # Nothing is a Candidate Unique Inference
-    #
-    # Context := P
-    # New Statement := Q
-    # Nothing is a Candidate Inference
-    # Nothing is a Candidate Unique Inference
-    #
-    # Context := P
-    # New Statement := S
-    # Nothing is a Candidate Inference
-    # Nothing is a Candidate Unique Inference
