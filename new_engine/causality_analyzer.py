@@ -17,7 +17,8 @@ def isnt_straight_up_false(context, new_statement, inference):
     return solver.quick_check_sat(z3.And(context, inference, new_statement))
 
 def isnt_vacuously_true(context, new_statement, inference):
-    return (solver.quick_check_sat(z3.And(context, z3.Not(inference))))
+    return (solver.quick_check_sat(z3.And(context, z3.Not(inference))) and
+            solver.quick_check_sat(z3.And(new_statement, z3.Not(inference))))
 
 def is_candidate_inference(context, new_statement, inference):
     return (explains_statement(context, new_statement, inference) and
@@ -34,47 +35,3 @@ def is_candidate_unique_inference(context, new_statement, inference):
     s = MySolver()
     return (s.quick_check_valid(is_unique) and
             is_candidate_inference(context, new_statement, inference))
-
-
-
-if __name__ == '__main__':
-    # Tests!
-
-    # Examples -- I guess I can make these test cases:
-    #
-    # P := a * a == 4
-    # Q := (a == -2) or (a == 2)
-    # R := (a == -2)
-    # S := (a == 2)
-    # T := True
-    # F := False
-
-    a = z3.Int('a')
-    p = (a * a == 4)
-    q = z3.Or((a == -2), (a == 2))
-    r = (a == -2)
-    s = (a == 2)
-    t = z3.And(True)
-    f = z3.And(False)
-    vars = {'p': p, 'q': q, 'r': r, 's': s, 't': t, 'f': f}
-
-    # Context := T
-    # New Statement := P
-    # R and S are Candidate Inferences
-    # Only Q is a Candidate Unique Inference? -- No! Q is vacuously true.
-    # Need to find another example to test.
-
-    context = t
-    new_statement = p
-    cis = ('p', 'q', 'r', 's')
-    cuis = ('p', 'q')
-
-    for varname, var in vars.iteritems():
-        if varname in cuis:
-            assert is_candidate_unique_inference(context, new_statement, var), varname
-        else:
-            assert not is_candidate_unique_inference(context, new_statement, var), varname
-        if varname in cis:
-            assert is_candidate_inference(context, new_statement, var), varname
-        else:
-            assert not is_candidate_inference(context, new_statement, var), varname
