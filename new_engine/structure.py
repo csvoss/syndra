@@ -22,6 +22,7 @@ class Structure(object):
         # return a new Structure object
         return WithSite(self, other_structure)
 
+
 class Agent(Structure):
     def __init__(self, name):
         self.name = name
@@ -35,6 +36,7 @@ class Agent(Structure):
         node = interpretation(self.central_node_label())
         has_node = z3.Select(has, node)
         return has_node
+
 
 class Bound(Structure):
     def __init__(self, structure_1, structure_2):
@@ -53,6 +55,7 @@ class Bound(Structure):
         return z3.And(has_link,
                 self.structure_1._assert(graph, interpretation),
                 self.structure_2._assert(graph, interpretation))
+
 
 class WithSite(Structure):
     def __init__(self, structure_1, structure_2):

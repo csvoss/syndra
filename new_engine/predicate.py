@@ -15,6 +15,11 @@ class Predicate(object):
                 raise ValueError("Tried to get model of unsat predicate")
             return solver.model()
 
+    def get_python_model(self):
+        # convert the z3 model into a Python model
+        # TODO
+        pass
+
     def check_sat(self):
         return solver.quick_check(self.get_predicate())
 
@@ -69,11 +74,13 @@ class Or(Predicate):
 class ModelHasRule(Predicate):
     def __init__(self, rule_function):
         self.rule_function = rule_function
+        self.rule_variable = None
 
     def _assert(self, model, interpretation):
-        rule = datatypes.new_rule()
-        return z3.Exists([rule],
-            self.rule_function(rule)._assert(model, interpretation))
+        self.rule_variable = datatypes.new_rule()
+        return z3.Exists([self.rule_variable],
+            self.rule_function(self.rule_variable)._assert(model,
+                                                           interpretation))
 
 class PregraphHas(Predicate):
     def __init__(self, rule, structure):

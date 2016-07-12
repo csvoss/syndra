@@ -35,6 +35,7 @@ class WaltersExampleTestCase(unittest.TestCase):
         self.assertTrue(predicate.check_sat())
         self.assertIsNotNone(predicate.get_model())
 
+
     def test_some_unsat_thing(self):
         RAF = Agent("RAF")
         HRAS = Agent("HRAS")
