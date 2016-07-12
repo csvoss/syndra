@@ -4,7 +4,28 @@ from predicate import And, ModelHasRule, PostgraphHas, PregraphHas
 from solver import MySolver
 from structure import Agent, Label
 
-solver = MySolver()
+
+def check_sat(z3_predicate):
+    """Add an assertion only temporarily, and check sat."""
+    solver = z3.Solver()
+    solver.push()
+    solver.add(z3_predicate)
+    return solver.check().r > 0
+    solver.pop()
+
+def check_valid(z3_predicate):
+    """Check that a predicate is valid - that its negation is unsat."""
+    solver = z3.Solver()
+    solver.push()
+    if not solver.check():
+        return True # The predicate is implied by the unsat env
+    solver.add(z3.Not(z3_predicate))
+    if solver.check().r > 0: # if negation is unsat, then it's valid
+        return False
+    else:
+        return True
+    solver.pop()
+
 
 
 # Problem statement: given a list of predicates, determine whether one is
@@ -65,14 +86,14 @@ if __name__ == '__main__':
 # before, so (Context /\ Not(Candidate Inference)) must be satisfiable.
 
 def explains_statement(context, new_statement, inference):
-    return solver.quick_check_valid(z3.Implies(z3.And(context, inference), new_statement))
+    return check_valid(z3.Implies(z3.And(context, inference), new_statement))
 
 def isnt_straight_up_false(context, new_statement, inference):
-    return solver.quick_check_sat(z3.And(context, inference, new_statement))
+    return check_sat(z3.And(context, inference, new_statement))
 
 def isnt_vacuously_true(context, new_statement, inference):
-    return (solver.quick_check_sat(z3.And(context, z3.Not(inference))) and
-            solver.quick_check_sat(z3.And(new_statement, z3.Not(inference))))
+    return (check_sat(z3.And(context, z3.Not(inference))) and
+            check_sat(z3.And(new_statement, z3.Not(inference))))
 
 def is_candidate_inference(context, new_statement, inference):
     return (explains_statement(context, new_statement, inference) and
@@ -91,5 +112,5 @@ def is_candidate_inference(context, new_statement, inference):
 def is_candidate_unique_inference(context, new_statement, inference):
     is_unique = z3.Implies(z3.And(context, new_statement), inference) # must be valid
     s = MySolver()
-    return (s.quick_check_valid(is_unique) and
+    return (check_valid(is_unique) and
             is_candidate_inference(context, new_statement, inference))

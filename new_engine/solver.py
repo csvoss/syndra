@@ -4,14 +4,11 @@ Global Z3 solver for use by other files.
 from contextlib import contextmanager
 import z3
 
-class MySolver(object):
+import predicate
 
+class MySolver(object):
     def __init__(self):
         self._solver = z3.Solver()
-        self._model_cached = False
-        # TODO: Initialize datatypes here
-
-    # TODO: Port the below functions to here as methods
 
     def push(self):
         """Push solver state."""
@@ -19,26 +16,31 @@ class MySolver(object):
 
     def pop(self):
         """Pop solver state."""
-        self._model_cached = False
         self._solver.pop()
 
-    def add(self, assertion):
+    def add(self, syndra_predicate):
         """Add an assertion to the solver state.
 
         Arguments:
-            assertion : Z3-friendly predicate or boolean
+            syndra_predicate : Syndra predicate, instance of predicate.Predicate
         """
-        self._model_cached = False
-        return self._solver.add(assertion)
+        z3_predicate = syndra_predicate.get_predicate()
+        self._solver.add(z3_predicate)
+
+    # def add_z3(self, z3_predicate):
+    #     """Add an assertion to the solver state.
+    #
+    #     Arguments:
+    #         z3_predicate : Z3-friendly predicate or boolean
+    #     """
+    #     return self._solver.add(z3_predicate)
 
     def model(self):
         """Return a model for the current solver state.
 
         Returns:
-            : Z3 model. TODO: Modify this all so that it returns sets, etc.
+            : Z3 model.
         """
-        if not self._model_cached:
-            self.check()  # Must check in order to refresh model!
         z3model = self._solver.model()
         return z3model
 
@@ -50,7 +52,6 @@ class MySolver(object):
         """
         # check() returns either unsat or sat
         result = self._solver.check()
-        self._model_cached = True
         # sat.r is 1, unsat.r is -1
         return result.r > 0
 
@@ -63,35 +64,21 @@ class MySolver(object):
         yield
         self.pop()
 
-    def quick_check(self, assertion):
+    def quick_check(self, syndra_predicate):
         """Add an assertion only temporarily, and check sat."""
         with self.context():
-            self.add(assertion)
+            self.add(syndra_predicate)
             return self.check()
 
-    def quick_check_sat(self, assertion):
-        return self.quick_check(assertion)
+    def quick_check_sat(self, syndra_predicate):
+        return self.quick_check(syndra_predicate)
 
-    def quick_check_valid(self, assertion):
+    def quick_check_valid(self, syndra_predicate):
         """Check that a predicate is valid - that its negation is unsat."""
         with self.context():
-            assert self.check(), "Error: cannot check validity in unsat env"
-            self.add(z3.Not(assertion))
-            return not self.check() # if negation is unsat, then it's valid
-
-    def quick_check_implied(self, assertion):
-        """Add an assertion only temporarily, and check that the assertion
-        is valid -- that is, necessarily true -- given current state."""
-        with self.context():
-            # False implies anything, so return True if we start unsat.
             if not self.check():
-                return True
-            self.add(z3.Not(assertion))
-            # If we're satisfiable after adding NOT(assertion), that means
-            # the assertion was not implied.
-            if self.check():
-                return False   # satisfiable NOT(x) --> invalid x
-            else:
-                return True  # unsatisfiable NOT(x) --> valid x
+                return True # The predicate is implied by the unsat env
+            self.add(predicate.Not(syndra_predicate))
+            return not self.check() # if negation is unsat, then it's valid
 
 solver = MySolver()

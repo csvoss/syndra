@@ -9,8 +9,7 @@ class Predicate(object):
 
     def get_model(self):
         with solver.context():
-            predicate = self.get_predicate()
-            solver.add(predicate)
+            solver.add(self)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
             return solver.model()
@@ -21,7 +20,7 @@ class Predicate(object):
         pass
 
     def check_sat(self):
-        return solver.quick_check(self.get_predicate())
+        return solver.quick_check(self)
 
     def get_predicate(self):
         # returns a z3 predicate
