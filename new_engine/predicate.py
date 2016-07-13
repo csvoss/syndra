@@ -1,11 +1,15 @@
 import z3
 
+from pythonize import pythonized
 from solver import solver
 import datatypes
 
 class Predicate(object):
     def __init__(self):
         raise NotImplementedError("Predicate is an abstract class.")
+
+    # TODO deprecate get_model, get_python_model, check_sat. These should
+    # all be managed by the Syndra solver (solver.py) instead.
 
     def get_model(self):
         with solver.context():
@@ -15,18 +19,18 @@ class Predicate(object):
             return solver.model()
 
     def get_python_model(self):
-        # convert the z3 model into a Python model
-        # TODO
-        pass
+        model = self.get_model()
+        return pythonized(self, model)
 
     def check_sat(self):
         return solver.quick_check(self)
 
     def get_predicate(self):
         # returns a z3 predicate
-        model = datatypes.new_model()
-        interpretation = datatypes.new_interpretation()
-        predicate = self._assert(model, interpretation)
+        self.model_variable = datatypes.new_model()
+        self.interpretation_variable = datatypes.new_interpretation()
+        predicate = self._assert(self.model_variable,
+                                 self.interpretation_variable)
         return predicate
 
     def _assert(self, model, interpretation):
@@ -78,8 +82,9 @@ class ModelHasRule(Predicate):
     def _assert(self, model, interpretation):
         self.rule_variable = datatypes.new_rule()
         return z3.Exists([self.rule_variable],
-            self.rule_function(self.rule_variable)._assert(model,
-                                                           interpretation))
+            z3.And(model(self.rule_variable),
+            self.rule_function(self.rule_variable)
+                    ._assert(model, interpretation)))
 
 class PregraphHas(Predicate):
     def __init__(self, rule, structure):

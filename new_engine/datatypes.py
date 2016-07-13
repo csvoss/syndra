@@ -51,5 +51,5 @@ Variable = z3.Datatype('Variable')
 Variable.declare('variable', ('get_name', z3.IntSort()))
 Variable = Variable.create()
 
-def new_interpretation():
-    return z3.Function('interpretation', z3.IntSort(), Node)
+def new_interpretation(nickname='interpretation'):
+    return z3.Function(_collision_free_string(nickname), z3.IntSort(), Node)

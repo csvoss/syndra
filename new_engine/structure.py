@@ -98,4 +98,4 @@ class Labeled(Structure):
 def Label(label_string):
     # just to make sure nobody gets messy with using strings as labels -- use
     # variables as labels instead, so that Python raises an error if you misspell
-    return ("label", label_string)
+    return "label_" + label_string

@@ -41,36 +41,49 @@ def check_valid(z3_predicate):
 # AND P with the predicate "The model will not have at least one of these rules"
 
 def detect_ambiguous(*predicates):
-    p = And(*predicates)
-    model = p.get_model()
-    import pdb; pdb.set_trace()
-    # TODO finish this
+    from datatypes import Rule, Graph, Node, Edge, Nodeset, Edgeset, Labelset, Labelmap
+    pred = And(*predicates)
+    model = pred.get_python_model()
+
+    # TODO assert that the model is not true, etc etc
 
 if __name__ == '__main__':
+    print "---"
     RAF = Agent("RAF")
     HRAS = Agent("HRAS")
     MEK1 = Agent("MEK1")
-    ERK1 = Agent("ERK1")
-    SAF1 = Agent("SAF1")
     gtp = Label("GTP")
     phosphate = Label("phosphate")
-    print detect_ambiguous(
-        ModelHasRule(lambda r: And(
-                PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
-                PregraphHas(r, MEK1),
-                PostgraphHas(r, MEK1.labeled(phosphate))
-        )),
-        ModelHasRule(lambda r: And(
-                PregraphHas(r, MEK1.labeled(phosphate)),
-                PregraphHas(r, ERK1),
-                PostgraphHas(r, ERK1.labeled(phosphate))
-        )),
-        ModelHasRule(lambda r: And(
-                PregraphHas(r, ERK1.labeled(phosphate)),
-                PregraphHas(r, SAF1),
-                PostgraphHas(r, SAF1.labeled(phosphate))
-        ))
-    )
+    print ModelHasRule(lambda r: And(
+            PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
+            PregraphHas(r, MEK1),
+            PostgraphHas(r, MEK1.labeled(phosphate)))).get_python_model()
+    print "---"
+
+    # RAF = Agent("RAF")
+    # HRAS = Agent("HRAS")
+    # MEK1 = Agent("MEK1")
+    # ERK1 = Agent("ERK1")
+    # SAF1 = Agent("SAF1")
+    # gtp = Label("GTP")
+    # phosphate = Label("phosphate")
+    # print detect_ambiguous(
+    #     ModelHasRule(lambda r: And(
+    #             PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
+    #             PregraphHas(r, MEK1),
+    #             PostgraphHas(r, MEK1.labeled(phosphate))
+    #     )),
+    #     ModelHasRule(lambda r: And(
+    #             PregraphHas(r, MEK1.labeled(phosphate)),
+    #             PregraphHas(r, ERK1),
+    #             PostgraphHas(r, ERK1.labeled(phosphate))
+    #     )),
+    #     ModelHasRule(lambda r: And(
+    #             PregraphHas(r, ERK1.labeled(phosphate)),
+    #             PregraphHas(r, SAF1),
+    #             PostgraphHas(r, SAF1.labeled(phosphate))
+    #     ))
+    # )
 
 
 
