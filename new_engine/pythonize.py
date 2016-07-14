@@ -12,6 +12,7 @@ def pythonized(pred, model):
     if type(rules[-1]) is not list:
         # For some reason the last element of 'rules' is usually True
         rules = rules[:-1]
+
     for pair in rules:
         rule, rule_in_model = pair[0], pair[1]
         assert rule_in_model # This says the rule is in the model
@@ -33,7 +34,7 @@ class RuleResult(object):
 
 class GraphResult(object):
     def __init__(self, graph, model, interp_variable):
-        ints_in_interp = [int(i) for i in str(model[interp_variable])[1:].replace('\n ', ' -> ').split(' -> ') if i.isdigit()]
+        ints_in_interp = [int(i) for i in str(model[interp_variable])[1:].replace('\n ', ' -> ').replace(', ', ' -> ').split(' -> ') if i.isdigit()]
 
         nodes = []
 
@@ -42,12 +43,14 @@ class GraphResult(object):
         parents = Graph.parents(graph)
         labelmap = Graph.labelmap(graph)
 
-        for value in ints_in_interp:
+        agents = [j for i, j in string_interner._str_to_int.items() if 'label_' not in i]
+
+        for value in agents:
             node_number = int(str(model.evaluate(interp_variable(value)))[5:-1])
             has_some_node = model.evaluate(z3.Select(has, interp_variable(value)))
             if has_some_node:
                 try:
-                    name = string_interner.get_str(node_number)
+                    name = string_interner.get_str(value)
                 except KeyError:
                     name = "NN#" + str(node_number)  # NN = no-name agent
                 labels = model.evaluate(z3.Select(labelmap, interp_variable(value)))

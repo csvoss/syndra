@@ -49,15 +49,16 @@ def detect_ambiguous(*predicates):
 
 if __name__ == '__main__':
     print "---"
-    RAF = Agent("RAF")
-    HRAS = Agent("HRAS")
-    MEK1 = Agent("MEK1")
-    gtp = Label("GTP")
+    kinase = Agent("kinase")
+    substrate = Agent("substrate")
     phosphate = Label("phosphate")
+    active = Label("active")
     print ModelHasRule(lambda r: And(
-            PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
-            PregraphHas(r, MEK1),
-            PostgraphHas(r, MEK1.labeled(phosphate)))).get_python_model()
+            PregraphHas(r, kinase.labeled(active)),
+            PregraphHas(r, substrate),
+            PostgraphHas(r, kinase.labeled(active)),
+            PostgraphHas(r, substrate.labeled(phosphate)),
+    )).get_python_model()
     print "---"
 
     # RAF = Agent("RAF")
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     # SAF1 = Agent("SAF1")
     # gtp = Label("GTP")
     # phosphate = Label("phosphate")
-    # print detect_ambiguous(
+    # print And(
     #     ModelHasRule(lambda r: And(
     #             PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
     #             PregraphHas(r, MEK1),
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     #             PregraphHas(r, SAF1),
     #             PostgraphHas(r, SAF1.labeled(phosphate))
     #     ))
-    # )
+    # ).get_python_model()
 
 
 
