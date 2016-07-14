@@ -59,15 +59,16 @@ class GraphResult(object):
 
         for node_1 in nodes:
             for node_2 in nodes:
-                value_1 = node_1.value
-                value_2 = node_2.value
-                edge = Edge.edge(interp_variable(value_1), interp_variable(value_2))
-                edge_in_parents = model.evaluate(z3.Select(parents, edge))
-                edge_in_links = model.evaluate(z3.Select(links, edge))
-                if str(edge_in_parents) == 'True':
-                    node_1.add_site(node_2)
-                if str(edge_in_links) == 'True':
-                    node_1.add_link(node_2)
+                if node_1 != node_2:
+                    value_1 = node_1.value
+                    value_2 = node_2.value
+                    edge = Edge.edge(interp_variable(value_1), interp_variable(value_2))
+                    edge_in_parents = model.evaluate(z3.Select(parents, edge))
+                    edge_in_links = model.evaluate(z3.Select(links, edge))
+                    if str(edge_in_parents) == 'True':
+                        node_1.add_site(node_2)
+                    if str(edge_in_links) == 'True':
+                        node_1.add_link(node_2)
 
         self.nodes = nodes
 
@@ -77,7 +78,7 @@ class GraphResult(object):
         has_some_node = model.evaluate(z3.Select(has, interp_variable(1)))
 
     def __repr__(self):
-        return "{%s}" % (', '.join(str(node) for node in self.nodes))
+        return "{%s}" % ('; '.join(str(node) for node in self.nodes))
 
 
 class NodeResult(object):
