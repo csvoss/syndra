@@ -27,13 +27,13 @@ class MySolver(object):
         z3_predicate = syndra_predicate.get_predicate()
         self._solver.add(z3_predicate)
 
-    # def add_z3(self, z3_predicate):
-    #     """Add an assertion to the solver state.
-    #
-    #     Arguments:
-    #         z3_predicate : Z3-friendly predicate or boolean
-    #     """
-    #     return self._solver.add(z3_predicate)
+    def add_z3(self, z3_predicate):
+        """Add an assertion to the solver state.
+
+        Arguments:
+            z3_predicate : Z3-friendly predicate or boolean
+        """
+        return self._solver.add(z3_predicate)
 
     def model(self):
         """Return a model for the current solver state.

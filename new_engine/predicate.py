@@ -3,6 +3,7 @@ import z3
 from pythonize import pythonized
 from solver import solver
 import datatypes
+from string_interner import string_interner
 
 class Predicate(object):
     def __init__(self):
@@ -16,6 +17,46 @@ class Predicate(object):
             solver.add(self)
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
+
+            # MODEL PRUNING: EDGES
+            # For each edge in each graph, assert that that edge isn't there.
+            # If we're still satisfiable, continue. Else, pop.
+            mo = solver.model()
+            interp_variable = self.interpretation_variable
+            rules = [i[0] for i in mo[self.model_variable].as_list()[:-1]]
+
+            agents = [j for i, j in string_interner._str_to_int.items() if 'label_' not in i]
+            edge_assertions = []
+            for rule in rules:
+                prg = datatypes.Rule.pregraph(rule)
+                pog = datatypes.Rule.postgraph(rule)
+                prlinks = datatypes.Graph.links(prg)
+                prparents = datatypes.Graph.parents(prg)
+                polinks = datatypes.Graph.links(pog)
+                poparents = datatypes.Graph.parents(pog)
+                for value_1 in agents:
+                    for value_2 in agents:
+                        edge = datatypes.Edge.edge(interp_variable(value_1), interp_variable(value_2))
+                        edge_assertions.append(z3.Not(z3.Select(prparents, edge)))
+                        edge_assertions.append(z3.Not(z3.Select(poparents, edge)))
+                        edge_assertions.append(z3.Not(z3.Select(prlinks, edge)))
+                        edge_assertions.append(z3.Not(z3.Select(polinks, edge)))
+
+            for edge_assertion in edge_assertions:
+                solver.push()
+                solver.add_z3(edge_assertion)
+                satisfiable = solver.check()
+                solver.pop()
+                if satisfiable:
+                    solver.add_z3(edge_assertion)
+
+            # MODEL PRUNING: LABELS
+            # TODO
+
+            # MODEL PRUNING: NODES
+            # TODO
+
+            assert solver.check()
             return solver.model()
 
     def get_python_model(self):
