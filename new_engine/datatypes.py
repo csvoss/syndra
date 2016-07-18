@@ -47,9 +47,9 @@ def new_rule(nickname='rule'):
 def new_model(nickname='model'):
     return z3.Function(_collision_free_string(nickname), Rule, z3.BoolSort())
 
+def new_node(nickname='node'):
+    return z3.Const(_collision_free_string(nickname), Node)
+
 Variable = z3.Datatype('Variable')
 Variable.declare('variable', ('get_name', z3.IntSort()))
 Variable = Variable.create()
-
-def new_interpretation(nickname='interpretation'):
-    return z3.Function(_collision_free_string(nickname), z3.IntSort(), Node)

@@ -51,13 +51,11 @@ if __name__ == '__main__':
     print "---"
     kinase = Agent("kinase")
     substrate = Agent("substrate")
-    phosphate = Label("phosphate")
-    active = Label("active")
     print ModelHasRule(lambda r: And(
-            PregraphHas(r, kinase.labeled(active)),
+            PregraphHas(r, kinase),
             PregraphHas(r, substrate),
-            PostgraphHas(r, kinase.labeled(active)),
-            PostgraphHas(r, substrate.labeled(phosphate)),
+            PostgraphHas(r, kinase),
+            PostgraphHas(r, substrate),
     )).get_python_model()
     print "---"
 

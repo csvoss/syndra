@@ -3,7 +3,7 @@ import z3
 from pythonize import pythonized
 from solver import solver
 import datatypes
-from string_interner import string_interner
+from string_interner import string_interner, node_interner
 
 class Predicate(object):
     def __init__(self):
@@ -18,14 +18,16 @@ class Predicate(object):
             if not solver.check():
                 raise ValueError("Tried to get model of unsat predicate")
 
+            print pythonized(self, solver.model())
+
             # MODEL PRUNING: EDGES
             # For each edge in each graph, assert that that edge isn't there.
             # If we're still satisfiable, continue. Else, pop.
             mo = solver.model()
-            interp_variable = self.interpretation_variable
             rules = [i[0] for i in mo[self.model_variable].as_list()[:-1]]
 
-            agents = [j for i, j in string_interner._str_to_int.items() if 'label_' not in i]
+            agents = node_interner._str_to_node.values()
+
             edge_assertions = []
             for rule in rules:
                 prg = datatypes.Rule.pregraph(rule)
@@ -34,13 +36,14 @@ class Predicate(object):
                 prparents = datatypes.Graph.parents(prg)
                 polinks = datatypes.Graph.links(pog)
                 poparents = datatypes.Graph.parents(pog)
-                for value_1 in agents:
-                    for value_2 in agents:
-                        edge = datatypes.Edge.edge(interp_variable(value_1), interp_variable(value_2))
+                for agent_1 in agents:
+                    for agent_2 in agents:
+                        edge = datatypes.Edge.edge(agent_1, agent_2)
                         edge_assertions.append(z3.Not(z3.Select(prparents, edge)))
                         edge_assertions.append(z3.Not(z3.Select(poparents, edge)))
                         edge_assertions.append(z3.Not(z3.Select(prlinks, edge)))
                         edge_assertions.append(z3.Not(z3.Select(polinks, edge)))
+
 
             for edge_assertion in edge_assertions:
                 solver.push()
@@ -69,12 +72,10 @@ class Predicate(object):
     def get_predicate(self):
         # returns a z3 predicate
         self.model_variable = datatypes.new_model()
-        self.interpretation_variable = datatypes.new_interpretation()
-        predicate = self._assert(self.model_variable,
-                                 self.interpretation_variable)
+        predicate = self._assert(self.model_variable)
         return predicate
 
-    def _assert(self, model, interpretation):
+    def _assert(self, model):
         raise NotImplementedError("Implement _assert in subclasses.")
 
     def check_implies(self, other_predicate):
@@ -92,8 +93,8 @@ class And(Predicate):
             _ensure_predicate(pred)
         self.preds = preds
 
-    def _assert(self, model, interpretation):
-        return z3.And(*map(lambda p: p._assert(model, interpretation),
+    def _assert(self, model):
+        return z3.And(*map(lambda p: p._assert(model),
                            self.preds))
 
 class Not(Predicate):
@@ -101,8 +102,8 @@ class Not(Predicate):
         _ensure_predicate(pred)
         self.pred = pred
 
-    def _assert(self, model, interpretation):
-        return z3.Not(self.pred._assert(model, interpretation))
+    def _assert(self, model):
+        return z3.Not(self.pred._assert(model))
 
 class Or(Predicate):
     def __init__(self, *preds):
@@ -110,8 +111,8 @@ class Or(Predicate):
             _ensure_predicate(pred)
         self.preds = preds
 
-    def _assert(self, model, interpretation):
-        return z3.Or(*map(lambda p: p._assert(model, interpretation),
+    def _assert(self, model):
+        return z3.Or(*map(lambda p: p._assert(model),
                           self.preds))
 
 
@@ -120,37 +121,38 @@ class ModelHasRule(Predicate):
         self.rule_function = rule_function
         self.rule_variable = None
 
-    def _assert(self, model, interpretation):
+    def _assert(self, model):
         self.rule_variable = datatypes.new_rule()
         return z3.Exists([self.rule_variable],
             z3.And(model(self.rule_variable),
             self.rule_function(self.rule_variable)
-                    ._assert(model, interpretation)))
+                    ._assert(model)))
 
 class PregraphHas(Predicate):
     def __init__(self, rule, structure):
         self.rule = rule
         self.structure = structure
 
-    def _assert(self, model, interpretation):
-        return self.structure._assert(datatypes.Rule.pregraph(self.rule), interpretation)
+    def _assert(self, model):
+        return self.structure._assert(datatypes.Rule.pregraph(self.rule))
 
 class PostgraphHas(Predicate):
     def __init__(self, rule, structure):
         self.rule = rule
         self.structure = structure
 
-    def _assert(self, model, interpretation):
-        return self.structure._assert(datatypes.Rule.postgraph(self.rule), interpretation)
+    def _assert(self, model):
+        return self.structure._assert(datatypes.Rule.postgraph(self.rule))
+
 
 class Top(Predicate):
     def __init__(self):
         pass
-    def _assert(self, model, interpretation):
+    def _assert(self, model):
         return z3.Or(True)
 
 class Bottom(Predicate):
     def __init__(self):
         pass
-    def _assert(self, model, interpretation):
+    def _assert(self, model):
         return z3.And(False)
