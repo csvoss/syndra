@@ -66,8 +66,8 @@ class WithSite(Structure):
 
     def _assert(self, graph):
         parents = datatypes.Graph.parents(graph)
-        node_1 = interpretation(self.structure_1.central_node_label())
-        node_2 = interpretation(self.structure_2.central_node_label())
+        node_1 = node_interner.get_node_or_add(self.structure_1.central_node_label())
+        node_2 = node_interner.get_node_or_add(self.structure_2.central_node_label())
         edge = datatypes.Edge.edge(node_1, node_2)
         has_parent = z3.Select(parents, edge)
         return z3.And(has_parent,
@@ -86,7 +86,7 @@ class Labeled(Structure):
 
     def _assert(self, graph):
         labelmap = datatypes.Graph.labelmap(graph)
-        node = interpretation(self.structure.central_node_label())
+        node = node_interner.get_node_or_add(self.structure.central_node_label())
         labelset = z3.Select(labelmap, node)  # returns a labelset
         label = self.label_as_number
         label_present = z3.Select(labelset, label) # returns a bool
