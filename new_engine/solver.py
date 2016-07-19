@@ -4,8 +4,9 @@ Solver for reasoning about Syndra predicates.
 from contextlib import contextmanager
 import z3
 
+import datatypes
 import predicate
-import pythonize
+import interners
 
 class MySolver(object):
     """
@@ -19,6 +20,9 @@ class MySolver(object):
 
     def __init__(self):
         self._solver = z3.Solver()
+        self.model_variable = datatypes.new_model() # TODO change when datatypes are inlined here
+        self.string_interner = interners.StringInterner()
+        self.node_interner = interners.NodeInterner()
 
     def push(self):
         """Push solver state."""
@@ -34,7 +38,7 @@ class MySolver(object):
         Arguments:
             syndra_predicate : Syndra predicate, instance of predicate.Predicate
         """
-        z3_predicate = syndra_predicate.get_predicate()
+        z3_predicate = syndra_predicate.get_predicate(self.model_variable)
         self._solver.add(z3_predicate)
 
     def _add_z3(self, z3_predicate):
@@ -51,7 +55,17 @@ class MySolver(object):
         Returns :: set of RuleResult objects
         """
         model = self._model_z3()
-        return pythonize.pythonized(self, model) # TODO: inline it here
+        output = []
+        rules = model[self.model_variable].as_list()
+        if not isinstance(rules[-1], list):
+            # For some reason the last element of 'rules' is usually True
+            rules = rules[:-1]
+        for pair in rules:
+            rule, rule_in_model = pair[0], pair[1]
+            assert rule_in_model # This says the rule is in the model
+            output.append(RuleResult(rule, model, self))
+        return output
+
 
     def _model_z3(self):
         """Return a model for the current solver state, straight from z3.
@@ -102,3 +116,101 @@ class MySolver(object):
                 return True # The predicate is implied by the unsat env
             self.add(predicate.Not(syndra_predicate))
             return not self.check() # if negation is unsat, then it's valid
+
+    def _labelset_to_set_of_labels(self, labelset, model):
+        """
+        Given a z3 labelset from a model, extract a set of labels.
+        """
+        output = []
+        for i in range(1, self.string_interner.counter):
+            if str(model.evaluate(z3.Select(labelset, i))) == 'True': # bleh
+                thing = self.string_interner.get_str(i)
+                if "label_" in thing:
+                    output.append(thing[6:])
+        return output
+
+
+
+
+
+class RuleResult(object):
+    """
+    Stores a rule and its pregraph/postgraph, for examining a z3-produced model.
+    """
+    def __init__(self, rule, model, solver):
+        pregraph = datatypes.Rule.pregraph(rule)
+        postgraph = datatypes.Rule.postgraph(rule)
+        self.pregraph = GraphResult(pregraph, model, solver)
+        self.postgraph = GraphResult(postgraph, model, solver)
+
+    def __repr__(self):
+        return "Rule(%s -> %s)" % (str(self.pregraph), str(self.postgraph))
+
+
+class GraphResult(object):
+    """
+    Stores a graph and its links, for examining a z3-produced model.
+    """
+    def __init__(self, graph, model, solver):
+        nodes = []
+
+        agent_names = solver.node_interner._str_to_node.keys()
+
+        has = datatypes.Graph.has(graph)
+        links = datatypes.Graph.links(graph)
+        parents = datatypes.Graph.parents(graph)
+        labelmap = datatypes.Graph.labelmap(graph)
+
+        for agent_name in agent_names:
+            z3_node = solver.node_interner.get_node(agent_name)
+            has_some_node = model.evaluate(z3.Select(has, z3_node))
+            if has_some_node:
+                labels = model.evaluate(z3.Select(labelmap, z3_node))
+                labels = solver._labelset_to_set_of_labels(labels, model)
+                nodes.append(NodeResult(z3_node, agent_name, labels))
+
+        for node_1 in nodes:
+            for node_2 in nodes:
+                if node_1 != node_2:
+                    edge = datatypes.Edge.edge(node_1.z3_node, node_2.z3_node)
+                    edge_in_parents = model.evaluate(z3.Select(parents, edge))
+                    edge_in_links = model.evaluate(z3.Select(links, edge))
+                    if str(edge_in_parents) == 'True':
+                        node_1.add_site(node_2)
+                    if str(edge_in_links) == 'True':
+                        node_1.add_link(node_2)
+
+        self.nodes = nodes
+
+    def __repr__(self):
+        return "{%s}" % ('; '.join(str(node) for node in self.nodes))
+
+
+class NodeResult(object):
+    """
+    Stores a node and its properties, for examining a z3-produced model.
+    """
+    def __init__(self, z3_node, name, labels):
+        self.z3_node = z3_node
+        self.name = name
+        self.labels = labels
+        self.links = []
+        self.sites = []
+
+    def add_link(self, other_node):
+        """Add an edge between this node and another node."""
+        self.links.append(other_node)
+
+    def add_site(self, other_node):
+        """Add a parent edge from this node to another node."""
+        self.sites.append(other_node)
+
+    def __repr__(self):
+        output = self.name
+        if len(self.labels) > 0:
+            output += ("-(%s)" % (', '.join(self.labels)))
+        if len(self.links) > 0:
+            output += " with links to " + (', '.join(link.name for link in self.links))
+        if len(self.sites) > 0:
+            output += " with sites " + (', '.join(site.name for site in self.sites))
+        return output
