@@ -50,12 +50,12 @@ def detect_ambiguous(*predicates):
 if __name__ == '__main__':
     print "---"
     kinase = Agent("kinase")
+    # phosphate = Label("phosphate")
+    # oxalate = Label("oxalate")
     substrate = Agent("substrate")
     print ModelHasRule(lambda r: And(
-            PregraphHas(r, kinase),
-            PregraphHas(r, substrate),
+            PregraphHas(r, kinase.bound(substrate)),
             PostgraphHas(r, kinase),
-            PostgraphHas(r, substrate),
     )).get_python_model()
     print "---"
 
