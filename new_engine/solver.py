@@ -1,7 +1,9 @@
+#pylint: disable=attribute-defined-outside-init,too-many-locals,too-many-instance-attributes
 """
 Solver for reasoning about Syndra predicates.
 """
-from contextlib import contextmanager
+import contextlib
+import itertools
 import z3
 
 import datatypes
@@ -20,7 +22,9 @@ class MySolver(object):
 
     def __init__(self):
         self._solver = z3.Solver()
-        self.model_variable = datatypes.new_model() # TODO change when datatypes are inlined here
+        Node, self.agents = z3.EnumSort("Node", [])
+        self._attach_datatypes(Node)
+        self.model_variable = self.new_model()
         self.string_interner = interners.StringInterner()
         self.node_interner = interners.NodeInterner()
 
@@ -90,7 +94,7 @@ class MySolver(object):
         else:
             raise Exception("z3 returned unknown")
 
-    @contextmanager
+    @contextlib.contextmanager
     def context(self):
         """To do something in between a push and a pop, use a `with context()`.
         This is especially useful for avoiding bugs caused by forgetting pop().
@@ -129,9 +133,55 @@ class MySolver(object):
                     output.append(thing[6:])
         return output
 
+    def _attach_datatypes(self, Node):
+        self.Node = Node
+
+        # A datatype for storing a pair of edges
+        self.Edge = z3.Datatype('Edge')
+        self.Edge.declare('edge',
+                          ('node1', Node),
+                          ('node2', Node))
+        self.Edge = self.Edge.create()
+
+        self.Nodeset = z3.ArraySort(self.Node, z3.BoolSort())
+        self.Edgeset = z3.ArraySort(self.Edge, z3.BoolSort())
+
+        self.Labelset = z3.ArraySort(z3.IntSort(), z3.BoolSort())
+        self.Labelmap = z3.ArraySort(self.Node, self.Labelset)
+
+        # Graph, before a rule or action has applied. Merged Pregraph and Postgraph
+        # into a single datatype.
+        self.Graph = z3.Datatype('Graph')
+        self.Graph.declare('graph',
+                           ('has', self.Nodeset),
+                           ('links', self.Edgeset),
+                           ('parents', self.Edgeset),
+                           ('labelmap', self.Labelmap))
+        self.Graph = self.Graph.create()
+
+        # This represents a set of possible <pregraph, postgraph> pairs.
+        self.Rule = z3.Datatype('Rule')
+        self.Rule.declare('rule',
+                          ('pregraph', self.Graph),
+                          ('postgraph', self.Graph))
+        self.Rule = self.Rule.create()
+
+
+    def new_rule(self, nickname='rule'):
+        """Create a new z3 Rule constant."""
+        return z3.Const(_collision_free_string(nickname), self.Rule)
+
+    def new_model(self, nickname='model'):
+        """Create a new model to assert predicates over."""
+        return z3.Function(_collision_free_string(nickname), self.Rule, z3.BoolSort())
+
+    def new_node(self, nickname='node'):
+        """Create a new z3 Node constant."""
+        return z3.Const(_collision_free_string(nickname), self.Node)
 
 
 
+# MODEL RESULTS
 
 class RuleResult(object):
     """
@@ -214,3 +264,13 @@ class NodeResult(object):
         if len(self.sites) > 0:
             output += " with sites " + (', '.join(site.name for site in self.sites))
         return output
+
+
+# TODO: Make Node a finite domain.
+# e.g.
+# Node, (enzyme, substrate) = z3.EnumSort("Node", ["enzyme", "substrate"])
+
+_numbergen = itertools.count(start=1, step=1)
+
+def _collision_free_string(prefix=""):
+    return prefix + "_" + str(_numbergen.next())
