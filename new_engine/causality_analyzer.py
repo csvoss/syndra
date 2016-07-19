@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import z3
 
 from predicate import And, ModelHasRule, PostgraphHas, PregraphHas
@@ -5,26 +6,38 @@ from solver import MySolver
 from structure import Agent, Label
 
 
+@contextmanager
+def context(solver):
+    solver.push()
+    yield
+    solver.pop()
+
 def check_sat(z3_predicate):
     """Add an assertion only temporarily, and check sat."""
     solver = z3.Solver()
-    solver.push()
-    solver.add(z3_predicate)
-    return solver.check().r > 0
-    solver.pop()
+    with context(solver):
+        solver.add(z3_predicate)
+        if result > 0:
+            return True
+        elif result < 0:
+            return False
+        else:
+            raise Exception("z3 returned unknown")
 
 def check_valid(z3_predicate):
     """Check that a predicate is valid - that its negation is unsat."""
     solver = z3.Solver()
-    solver.push()
-    if not solver.check():
-        return True # The predicate is implied by the unsat env
-    solver.add(z3.Not(z3_predicate))
-    if solver.check().r > 0: # if negation is unsat, then it's valid
-        return False
-    else:
-        return True
-    solver.pop()
+    with context(solver):
+        if not solver.check():
+            return True # The predicate is implied by the unsat env
+        solver.add(z3.Not(z3_predicate))
+        result = solver.check().r
+        if result > 0: # if negation is unsat, then it's valid
+            return False
+        elif result < 0:
+            return True
+        else:
+            raise Exception("z3 returned unknown")
 
 
 

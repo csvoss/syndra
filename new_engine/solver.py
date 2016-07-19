@@ -67,14 +67,14 @@ class MySolver(object):
         Returns :: boolean -- True if sat, False if unsat
         """
         # check() returns either unsat or sat
-        result = self._solver.check()
+        result = self._solver.check().r
         # sat.r is 1, unsat.r is -1
-        if result.r > 0:
+        if result > 0:
             return True
-        if result.r < 0:
+        elif result < 0:
             return False
         else:
-            raise ValueError("z3 returned unknown")
+            raise Exception("z3 returned unknown")
 
     @contextmanager
     def context(self):
