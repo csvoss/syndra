@@ -42,7 +42,7 @@ class MySolver(object):
         Arguments:
             syndra_predicate : Syndra predicate, instance of predicate.Predicate
         """
-        z3_predicate = syndra_predicate.get_predicate(self.model_variable)
+        z3_predicate = syndra_predicate.get_predicate(self.model_variable, self.string_interner, self.node_interner)
         self._solver.add(z3_predicate)
 
     def _add_z3(self, z3_predicate):
