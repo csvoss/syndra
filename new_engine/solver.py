@@ -6,7 +6,6 @@ import contextlib
 import itertools
 import z3
 
-import datatypes
 import predicate
 import interners
 
@@ -19,14 +18,16 @@ class MySolver(object):
     The design of this solver is inspired by the methods provided by z3's
     solver.
     """
+    # TODO: Redesign this class so that it does not assume that the first
+    # predicate it gets will contain all of the nodes it needs to know about.
 
     def __init__(self):
         self._solver = z3.Solver()
-        Node, self.agents = z3.EnumSort("Node", [])
-        self._attach_datatypes(Node)
+        self.node_names = []
+        self._attach_datatypes()
         self.model_variable = self.new_model()
         self.string_interner = interners.StringInterner()
-        self.node_interner = interners.NodeInterner()
+        self.node_interner = interners.NodeInterner(self.new_node)
 
     def push(self):
         """Push solver state."""
@@ -42,8 +43,25 @@ class MySolver(object):
         Arguments:
             syndra_predicate : Syndra predicate, instance of predicate.Predicate
         """
-        z3_predicate = syndra_predicate.get_predicate(self.model_variable, self.string_interner, self.node_interner)
+        # Add the predicate's nodes to self.node_names
+        self.add_nodes_from(syndra_predicate)
+
+        # Add the predicate iself to Z3
+        z3_predicate = syndra_predicate.get_predicate(
+            self.model_variable, self.string_interner, self.node_interner)
         self._solver.add(z3_predicate)
+
+    def add_nodes_from(self, syndra_predicate):
+        """
+        Add the nodes in syndra_predicate to our list of nodes.
+        """
+        # Traverse the predicate to get names of agents it contains
+        # Append those agent names to self.node_names
+        # If we have more nodes now, re-call self._attach_datatypes
+        # This will involve messing with the z3 solver state and
+        # re-adding a bunch of predicates to it
+        # TODO implement this
+        pass
 
     def _add_z3(self, z3_predicate):
         """Add a z3 predicate to the solver state.
@@ -133,14 +151,14 @@ class MySolver(object):
                     output.append(thing[6:])
         return output
 
-    def _attach_datatypes(self, Node):
-        self.Node = Node
+    def _attach_datatypes(self):
+        self.Node, self.node_values = z3.EnumSort("Node", self.node_names)
 
         # A datatype for storing a pair of edges
         self.Edge = z3.Datatype('Edge')
         self.Edge.declare('edge',
-                          ('node1', Node),
-                          ('node2', Node))
+                          ('node1', self.Node),
+                          ('node2', self.Node))
         self.Edge = self.Edge.create()
 
         self.Nodeset = z3.ArraySort(self.Node, z3.BoolSort())
@@ -166,7 +184,6 @@ class MySolver(object):
                           ('postgraph', self.Graph))
         self.Rule = self.Rule.create()
 
-
     def new_rule(self, nickname='rule'):
         """Create a new z3 Rule constant."""
         return z3.Const(_collision_free_string(nickname), self.Rule)
@@ -188,8 +205,8 @@ class RuleResult(object):
     Stores a rule and its pregraph/postgraph, for examining a z3-produced model.
     """
     def __init__(self, rule, model, solver):
-        pregraph = datatypes.Rule.pregraph(rule)
-        postgraph = datatypes.Rule.postgraph(rule)
+        pregraph = solver.Rule.pregraph(rule)
+        postgraph = solver.Rule.postgraph(rule)
         self.pregraph = GraphResult(pregraph, model, solver)
         self.postgraph = GraphResult(postgraph, model, solver)
 
@@ -206,10 +223,10 @@ class GraphResult(object):
 
         agent_names = solver.node_interner._str_to_node.keys()
 
-        has = datatypes.Graph.has(graph)
-        links = datatypes.Graph.links(graph)
-        parents = datatypes.Graph.parents(graph)
-        labelmap = datatypes.Graph.labelmap(graph)
+        has = solver.Graph.has(graph)
+        links = solver.Graph.links(graph)
+        parents = solver.Graph.parents(graph)
+        labelmap = solver.Graph.labelmap(graph)
 
         for agent_name in agent_names:
             z3_node = solver.node_interner.get_node(agent_name)
@@ -222,7 +239,7 @@ class GraphResult(object):
         for node_1 in nodes:
             for node_2 in nodes:
                 if node_1 != node_2:
-                    edge = datatypes.Edge.edge(node_1.z3_node, node_2.z3_node)
+                    edge = solver.Edge.edge(node_1.z3_node, node_2.z3_node)
                     edge_in_parents = model.evaluate(z3.Select(parents, edge))
                     edge_in_links = model.evaluate(z3.Select(links, edge))
                     if str(edge_in_parents) == 'True':

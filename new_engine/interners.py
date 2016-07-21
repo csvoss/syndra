@@ -45,9 +45,10 @@ class NodeInterner(object):
     Used by our solver to ensure that each agent in a predicate gets assigned
     exactly one node. TODO: This may be redundant after nodes become enums.
     """
-    def __init__(self):
+    def __init__(self, new_node_function):
         self._str_to_node = {}
         self._node_to_str = {}
+        self.new_node_function = new_node_function
 
     def add(self, string, node):
         """Add a new string/node pair."""
@@ -73,5 +74,5 @@ class NodeInterner(object):
     # def get_node_or_add(self, string):
     #     assert isinstance(string, str)
     #     if not self.has_string(string):
-    #         self.add(string)
+    #         self.add(string, new_node_function(string)
     #     return self.get_node(string)
