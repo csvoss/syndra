@@ -21,16 +21,15 @@ class MySolver(object):
     # TODO: Redesign this class so that it does not assume that the first
     # predicate it gets will contain all of the nodes it needs to know about.
 
-    def __init__(self):
+    def __init__(self, *node_names):
         try:
             self._solver = z3.Solver()
         except:
             raise ImportError("You must have Z3 installed. Have you activated your virtualenv?")
-        self.node_names = ["defaultnode"]
+        self.node_names = node_names
         self._attach_datatypes()
         self.model_variable = self.new_model()
         self.string_interner = interners.StringInterner()
-        self.node_interner = interners.NodeInterner(self.new_node)
 
     def push(self):
         """Push solver state."""
@@ -156,6 +155,8 @@ class MySolver(object):
     def _attach_datatypes(self):
         self.Node, self.node_values = z3.EnumSort("Node", self.node_names)
 
+        self.nodes = dict(zip(self.node_names, self.node_values))
+
         # A datatype for storing a pair of edges
         self.Edge = z3.Datatype('Edge')
         self.Edge.declare('edge',
@@ -223,7 +224,7 @@ class GraphResult(object):
     def __init__(self, graph, model, solver):
         nodes = []
 
-        agent_names = solver.node_interner._str_to_node.keys()
+        agent_names = solver.nodes.keys()
 
         has = solver.Graph.has(graph)
         links = solver.Graph.links(graph)
@@ -231,7 +232,7 @@ class GraphResult(object):
         labelmap = solver.Graph.labelmap(graph)
 
         for agent_name in agent_names:
-            z3_node = solver.node_interner.get_node(agent_name)
+            z3_node = solver.nodes[agent_name]
             has_some_node = model.evaluate(z3.Select(has, z3_node))
             if has_some_node:
                 labels = model.evaluate(z3.Select(labelmap, z3_node))

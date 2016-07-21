@@ -70,7 +70,7 @@ if __name__ == '__main__':
             PregraphHas(r, kinase),
     ))
 
-    solver = MySolver()
+    solver = MySolver("kinase", "substrate")
     print "---"
     solver.add(pred)
     print solver.check()

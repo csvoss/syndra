@@ -36,7 +36,7 @@ class Agent(Structure):
     def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
         has = solver.Graph.has(graph)
-        node = solver.node_interner.get_node(self.central_node_label())
+        node = solver.nodes[self.central_node_label()]
         has_node = z3.Select(has, node)
         return has_node
 
@@ -56,8 +56,8 @@ class Bound(Structure):
     def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
         links = solver.Graph.links(graph)
-        node_1 = solver.node_interner.get_node(self.structure_1.central_node_label())
-        node_2 = solver.node_interner.get_node(self.structure_2.central_node_label())
+        node_1 = solver.nodes[self.structure_1.central_node_label()]
+        node_2 = solver.nodes[self.structure_2.central_node_label()]
         edge = solver.Edge.edge(node_1, node_2)
         has_link = z3.Select(links, edge)
         return z3.And(has_link,
@@ -79,8 +79,8 @@ class WithSite(Structure):
     def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
         parents = solver.Graph.parents(graph)
-        node_1 = solver.node_interner.get_node(self.structure_1.central_node_label())
-        node_2 = solver.node_interner.get_node(self.structure_2.central_node_label())
+        node_1 = solver.nodes[self.structure_1.central_node_label()]
+        node_2 = solver.nodes[self.structure_2.central_node_label()]
         edge = solver.Edge.edge(node_1, node_2)
         has_parent = z3.Select(parents, edge)
         return z3.And(has_parent,
@@ -102,7 +102,7 @@ class Labeled(Structure):
     def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
         labelmap = solver.Graph.labelmap(graph)
-        node = solver.node_interner.get_node(self.structure.central_node_label())
+        node = solver.nodes[self.structure.central_node_label()]
         labelset = z3.Select(labelmap, node)  # returns a labelset
         label = solver.string_interner.get_int_or_add(self.label)
         label_present = z3.Select(labelset, label) # returns a bool
