@@ -5,6 +5,7 @@ Solver for reasoning about Syndra predicates.
 import contextlib
 import itertools
 import z3
+import z3types
 
 import predicate
 import interners
@@ -22,6 +23,10 @@ class MySolver(object):
     # predicate it gets will contain all of the nodes it needs to know about.
 
     def __init__(self, *node_names):
+        """
+        The solver must be instantiated with a list of agent names
+        you intend to use.
+        """
         try:
             self._solver = z3.Solver()
         except:
@@ -77,6 +82,58 @@ class MySolver(object):
 
         Returns :: set of RuleResult objects
         """
+        self._model_z3()
+
+        ## EXTRA ASSERTIONS
+
+        def try_assertion(edge_assertion):
+            with self.context():
+                self._add_z3(edge_assertion)
+                satisfiable = self.check()
+            if satisfiable:
+                print "Constraint added!", edge_assertion
+                self._add_z3(edge_assertion)
+            else:
+                print "Too constraining!", edge_assertion
+
+        # This is to check that I can assert stuff at all.
+        try_assertion(z3.And(True))
+
+        g = z3.Const('testgraph', self.Graph)
+        n1 = self.new_node()
+        n2 = self.new_node()
+
+        # These are some sanity constraints.
+        try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.has(g), n1)))
+        try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.has(g), n2)))
+        try_assertion(z3.Implies(z3.Or(*map(lambda a: a==n1, self.nodes.values())), z3.Select(self.Graph.has(g), n1)))
+        try_assertion(z3.Implies(z3.Select(self.Graph.has(g), n1), z3.Or(*map(lambda a: a==n1, self.nodes.values()))))
+
+        # Edges must be symmetric.
+        try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.links(g), self.Edge.edge(n2, n1))))
+
+        mo = self._solver.model()
+        rules = [i[0] for i in mo[self.model_variable].as_list()[:-1]]
+        # These attempt to minimize the number of edges.
+        for rule in rules:
+            prg = self.Rule.pregraph(rule)
+            pog = self.Rule.postgraph(rule)
+            prlinks = self.Graph.links(prg)
+            prparents = self.Graph.parents(prg)
+            polinks = self.Graph.links(pog)
+            poparents = self.Graph.parents(pog)
+            for agent_1 in self.nodes.values():
+                for agent_2 in self.nodes.values():
+                    edge = self.Edge.edge(agent_1, agent_2)
+                    try_assertion(z3.Not(z3.Select(prparents, edge)))
+                    try_assertion(z3.Not(z3.Select(poparents, edge)))
+                    try_assertion(z3.Not(z3.Select(prlinks, edge)))
+                    try_assertion(z3.Not(z3.Select(polinks, edge)))
+
+
+
+        ## MODEL-GETTING
+
         model = self._model_z3()
         output = []
         rules = model[self.model_variable].as_list()
@@ -95,8 +152,10 @@ class MySolver(object):
 
         Returns :: Z3 model.
         """
-        z3model = self._solver.model()
-        return z3model
+        try:
+            return self._solver.model()
+        except z3types.Z3Exception:
+            raise ValueError("Tried to get model of unsat!")
 
     def check(self):
         """Check satisfiability of current satisfiability state.
@@ -285,10 +344,6 @@ class NodeResult(object):
             output += " with sites " + (', '.join(site.name for site in self.sites))
         return output
 
-
-# TODO: Make Node a finite domain.
-# e.g.
-# Node, (enzyme, substrate) = z3.EnumSort("Node", ["enzyme", "substrate"])
 
 _numbergen = itertools.count(start=1, step=1)
 

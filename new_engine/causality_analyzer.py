@@ -67,7 +67,9 @@ if __name__ == '__main__':
     # oxalate = Label("oxalate")
     substrate = Agent("substrate")
     pred = ModelHasRule(lambda r: And(
-            PregraphHas(r, kinase),
+            PregraphHas(r, kinase.bound(substrate)),
+            PostgraphHas(r, kinase),
+            PostgraphHas(r, substrate),
     ))
 
     solver = MySolver("kinase", "substrate")
