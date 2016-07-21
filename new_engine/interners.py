@@ -2,7 +2,6 @@
 StringInterner and NodeInterner are utilities for keeping track of strings
 paired to ints and nodes paired to strings.
 """
-import datatypes
 
 class StringInterner(object):
     """
@@ -68,11 +67,11 @@ class NodeInterner(object):
 
     def get_str(self, node):
         """Get the string for a given node."""
-        assert isinstance(node, datatypes.Node), type(node)
         return self._node_to_str[node]
 
-    # def get_node_or_add(self, string):
-    #     assert isinstance(string, str)
-    #     if not self.has_string(string):
-    #         self.add(string, new_node_function(string)
-    #     return self.get_node(string)
+    def get_node_or_add(self, string):
+        """Get the node for a given string, or add it if not yet noted."""
+        assert isinstance(string, str)
+        if not self.has_string(string):
+            self.add(string, self.new_node_function(string))
+        return self.get_node(string)
