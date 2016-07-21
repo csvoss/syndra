@@ -38,7 +38,7 @@ class And(Predicate):
             _ensure_predicate(pred)
         self.preds = preds
     def _assert(self, model, solver):
-        return z3.And(*(p._assert(model, solver) for p in self.preds))
+        return z3.And(*[p._assert(model, solver) for p in self.preds])
 
 
 class Not(Predicate):
@@ -57,7 +57,7 @@ class Or(Predicate):
             _ensure_predicate(pred)
         self.preds = preds
     def _assert(self, model, solver):
-        return z3.Or(*(p._assert(model, solver) for p in self.preds))
+        return z3.Or(*[p._assert(model, solver) for p in self.preds])
 
 
 class ModelHasRule(Predicate):
@@ -82,7 +82,7 @@ class ModelHasRule(Predicate):
         return z3.Exists([self.rule_variable],
                          z3.And(model(self.rule_variable),
                                 self.rule_function(self.rule_variable)
-                                ._assert(model)))
+                                ._assert(model, solver)))
 
 
 class PregraphHas(Predicate):
@@ -91,7 +91,7 @@ class PregraphHas(Predicate):
         self.rule = rule
         self.structure = structure
     def _assert(self, model, solver):
-        return self.structure._assert(solver.Rule.pregraph(self.rule))
+        return self.structure._assert(solver.Rule.pregraph(self.rule), solver)
 
 
 class PostgraphHas(Predicate):
@@ -100,7 +100,7 @@ class PostgraphHas(Predicate):
         self.rule = rule
         self.structure = structure
     def _assert(self, model, solver):
-        return self.structure._assert(solver.Rule.postgraph(self.rule))
+        return self.structure._assert(solver.Rule.postgraph(self.rule), solver)
 
 
 class Top(Predicate):

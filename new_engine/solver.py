@@ -22,8 +22,11 @@ class MySolver(object):
     # predicate it gets will contain all of the nodes it needs to know about.
 
     def __init__(self):
-        self._solver = z3.Solver()
-        self.node_names = []
+        try:
+            self._solver = z3.Solver()
+        except:
+            raise ImportError("You must have Z3 installed. Have you activated your virtualenv?")
+        self.node_names = ["defaultnode"]
         self._attach_datatypes()
         self.model_variable = self.new_model()
         self.string_interner = interners.StringInterner()

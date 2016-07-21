@@ -66,10 +66,15 @@ if __name__ == '__main__':
     # phosphate = Label("phosphate")
     # oxalate = Label("oxalate")
     substrate = Agent("substrate")
-    print ModelHasRule(lambda r: And(
-            PregraphHas(r, kinase.bound(substrate)),
-            PostgraphHas(r, kinase),
-    )).get_python_model()
+    pred = ModelHasRule(lambda r: And(
+            PregraphHas(r, kinase),
+    ))
+
+    solver = MySolver()
+    print "---"
+    solver.add(pred)
+    print solver.check()
+    print solver.model()
     print "---"
 
     # RAF = Agent("RAF")
