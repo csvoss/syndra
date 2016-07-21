@@ -5,11 +5,10 @@ for asserting that the pregraph or postgraph of a rule has certain properties.
 
 import z3
 
-import datatypes
 
 class Structure(object):
     """Abstract class Structure."""
-    def _assert(self, graph, string_interner, node_interner):
+    def _assert(self, graph, solver):
         raise NotImplementedError("Implement _assert in subclasses.")
 
     def bound(self, other_structure):
@@ -34,10 +33,10 @@ class Agent(Structure):
         """Keeps track of the 'central' node in a given structure."""
         return self.name
 
-    def _assert(self, graph, string_interner, node_interner):
+    def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
-        has = datatypes.Graph.has(graph)
-        node = node_interner.get_node_or_add(self.central_node_label())
+        has = solver.Graph.has(graph)
+        node = solver.node_interner.get_node_or_add(self.central_node_label())
         has_node = z3.Select(has, node)
         return has_node
 
@@ -54,16 +53,16 @@ class Bound(Structure):
         """Keeps track of the 'central' node in a given structure."""
         return self.structure_1.central_node_label()
 
-    def _assert(self, graph, string_interner, node_interner):
+    def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
-        links = datatypes.Graph.links(graph)
-        node_1 = node_interner.get_node_or_add(self.structure_1.central_node_label())
-        node_2 = node_interner.get_node_or_add(self.structure_2.central_node_label())
-        edge = datatypes.Edge.edge(node_1, node_2)
+        links = solver.Graph.links(graph)
+        node_1 = solver.node_interner.get_node_or_add(self.structure_1.central_node_label())
+        node_2 = solver.node_interner.get_node_or_add(self.structure_2.central_node_label())
+        edge = solver.Edge.edge(node_1, node_2)
         has_link = z3.Select(links, edge)
         return z3.And(has_link,
-                      self.structure_1._assert(graph, string_interner, node_interner),
-                      self.structure_2._assert(graph, string_interner, node_interner))
+                      self.structure_1._assert(graph, solver),
+                      self.structure_2._assert(graph, solver))
 
 
 class WithSite(Structure):
@@ -77,16 +76,16 @@ class WithSite(Structure):
         """Keeps track of the 'central' node in a given structure."""
         return self.structure_1.central_node_label()
 
-    def _assert(self, graph, string_interner, node_interner):
+    def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
-        parents = datatypes.Graph.parents(graph)
-        node_1 = node_interner.get_node_or_add(self.structure_1.central_node_label())
-        node_2 = node_interner.get_node_or_add(self.structure_2.central_node_label())
-        edge = datatypes.Edge.edge(node_1, node_2)
+        parents = solver.Graph.parents(graph)
+        node_1 = solver.node_interner.get_node_or_add(self.structure_1.central_node_label())
+        node_2 = solver.node_interner.get_node_or_add(self.structure_2.central_node_label())
+        edge = solver.Edge.edge(node_1, node_2)
         has_parent = z3.Select(parents, edge)
         return z3.And(has_parent,
-                      self.structure_1._assert(graph, string_interner, node_interner),
-                      self.structure_2._assert(graph, string_interner, node_interner))
+                      self.structure_1._assert(graph, solver),
+                      self.structure_2._assert(graph, solver))
 
 
 class Labeled(Structure):
@@ -100,15 +99,15 @@ class Labeled(Structure):
         """Keeps track of the 'central' node in a given structure."""
         return self.structure.central_node_label()
 
-    def _assert(self, graph, string_interner, node_interner):
+    def _assert(self, graph, solver):
         """Return a z3 predicate asserting this structure is in `graph`."""
-        labelmap = datatypes.Graph.labelmap(graph)
-        node = node_interner.get_node_or_add(self.structure.central_node_label())
+        labelmap = solver.Graph.labelmap(graph)
+        node = solver.node_interner.get_node_or_add(self.structure.central_node_label())
         labelset = z3.Select(labelmap, node)  # returns a labelset
-        label = string_interner.get_int_or_add(self.label)
+        label = solver.string_interner.get_int_or_add(self.label)
         label_present = z3.Select(labelset, label) # returns a bool
         return z3.And(label_present,
-                      self.structure._assert(graph, string_interner, node_interner))
+                      self.structure._assert(graph, solver))
 
 
 def Label(label_string):

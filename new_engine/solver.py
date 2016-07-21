@@ -47,8 +47,7 @@ class MySolver(object):
         self.add_nodes_from(syndra_predicate)
 
         # Add the predicate iself to Z3
-        z3_predicate = syndra_predicate.get_predicate(
-            self.model_variable, self.string_interner, self.node_interner)
+        z3_predicate = syndra_predicate.get_predicate(self.model_variable, self)
         self._solver.add(z3_predicate)
 
     def add_nodes_from(self, syndra_predicate):

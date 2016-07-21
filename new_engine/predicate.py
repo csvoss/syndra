@@ -4,11 +4,10 @@ class of any Syndra predicate.
 """
 import z3
 
-import datatypes
 
 class Predicate(object):
     """An abstract class for defining Syndra predicates."""
-    def get_predicate(self, model_variable, string_interner, node_interner):
+    def get_predicate(self, model_variable, solver):
         """Converts this Syndra predicate into a z3 predicate.
 
         Called by the solver in solver.py; should only be used there. Interact
@@ -20,9 +19,9 @@ class Predicate(object):
 
         Returns :: z3 predicate.
         """
-        predicate = self._assert(model_variable, string_interner, node_interner)
+        predicate = self._assert(model_variable, solver)
         return predicate
-    def _assert(self, model, string_interner, node_interner):
+    def _assert(self, model, solver):
         raise NotImplementedError("Implement _assert in subclasses.")
 
 
@@ -38,8 +37,8 @@ class And(Predicate):
         for pred in preds:
             _ensure_predicate(pred)
         self.preds = preds
-    def _assert(self, model, string_interner, node_interner):
-        return z3.And(*(p._assert(model, string_interner, node_interner) for p in self.preds))
+    def _assert(self, model, solver):
+        return z3.And(*(p._assert(model, solver) for p in self.preds))
 
 
 class Not(Predicate):
@@ -47,8 +46,8 @@ class Not(Predicate):
     def __init__(self, pred):
         _ensure_predicate(pred)
         self.pred = pred
-    def _assert(self, model, string_interner, node_interner):
-        return z3.Not(self.pred._assert(model, string_interner, node_interner))
+    def _assert(self, model, solver):
+        return z3.Not(self.pred._assert(model, solver))
 
 
 class Or(Predicate):
@@ -57,8 +56,8 @@ class Or(Predicate):
         for pred in preds:
             _ensure_predicate(pred)
         self.preds = preds
-    def _assert(self, model, string_interner, node_interner):
-        return z3.Or(*(p._assert(model, string_interner, node_interner) for p in self.preds))
+    def _assert(self, model, solver):
+        return z3.Or(*(p._assert(model, solver) for p in self.preds))
 
 
 class ModelHasRule(Predicate):
@@ -78,8 +77,8 @@ class ModelHasRule(Predicate):
     def __init__(self, rule_function):
         self.rule_function = rule_function
         self.rule_variable = None
-    def _assert(self, model, string_interner, node_interner):
-        self.rule_variable = datatypes.new_rule()
+    def _assert(self, model, solver):
+        self.rule_variable = solver.new_rule()
         return z3.Exists([self.rule_variable],
                          z3.And(model(self.rule_variable),
                                 self.rule_function(self.rule_variable)
@@ -91,8 +90,8 @@ class PregraphHas(Predicate):
     def __init__(self, rule, structure):
         self.rule = rule
         self.structure = structure
-    def _assert(self, model, string_interner, node_interner):
-        return self.structure._assert(datatypes.Rule.pregraph(self.rule))
+    def _assert(self, model, solver):
+        return self.structure._assert(solver.Rule.pregraph(self.rule))
 
 
 class PostgraphHas(Predicate):
@@ -100,15 +99,15 @@ class PostgraphHas(Predicate):
     def __init__(self, rule, structure):
         self.rule = rule
         self.structure = structure
-    def _assert(self, model, string_interner, node_interner):
-        return self.structure._assert(datatypes.Rule.postgraph(self.rule))
+    def _assert(self, model, solver):
+        return self.structure._assert(solver.Rule.postgraph(self.rule))
 
 
 class Top(Predicate):
     """Syndra predicate that is always satisfiable."""
     def __init__(self):
         pass
-    def _assert(self, model, string_interner, node_interner):
+    def _assert(self, model, solver):
         return z3.Or(True)
 
 
@@ -116,5 +115,5 @@ class Bottom(Predicate):
     """Syndra predicate that is never satisfiable."""
     def __init__(self):
         pass
-    def _assert(self, model, string_interner, node_interner):
+    def _assert(self, model, solver):
         return z3.And(False)
