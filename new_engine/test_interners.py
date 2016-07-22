@@ -1,6 +1,6 @@
 import unittest
 
-from string_interner import StringInterner
+from interners import StringInterner
 
 class StringInternerTestCase(unittest.TestCase):
     def setUp(self):

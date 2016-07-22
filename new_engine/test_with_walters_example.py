@@ -1,12 +1,13 @@
 import unittest
 
-from datatypes import *
 from predicate import *
 from structure import *
+from solver import MySolver
 
 class WaltersExampleTestCase(unittest.TestCase):
 
     def test_build_context(self):
+        raise ValueError()
         RAF = Agent("RAF")
         HRAS = Agent("HRAS")
         MEK1 = Agent("MEK1")
@@ -32,11 +33,14 @@ class WaltersExampleTestCase(unittest.TestCase):
                     PostgraphHas(r, SAF1.labeled(phosphate))
             ))
         )
-        self.assertTrue(predicate.check_sat())
-        self.assertIsNotNone(predicate.get_model())
+        solver = MySolver("RAF", "HRAS", "MEK1", "ERK1", "SAF1")
+        solver.add(predicate)
+        self.assertTrue(solver.check())
+        self.assertIsNotNone(solver.model())
 
 
     def test_some_unsat_thing(self):
+        raise ValueError()
         RAF = Agent("RAF")
         HRAS = Agent("HRAS")
         MEK1 = Agent("MEK1")
@@ -55,6 +59,8 @@ class WaltersExampleTestCase(unittest.TestCase):
                     PostgraphHas(r, MEK1.labeled(phosphate))
             )))
         )
-        self.assertFalse(predicate2.check_sat())
+        solver = MySolver("RAF", "HRAS", "MEK1")
+        solver.add(predicate)
+        self.assertFalse(solver.check())
         with self.assertRaises(ValueError):
-            predicate2.get_model()
+            solver.model()

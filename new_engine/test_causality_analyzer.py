@@ -4,7 +4,6 @@ import z3
 import causality_analyzer
 from causality_analyzer import is_candidate_inference, is_candidate_unique_inference
 
-
 class CausalityAnalyzerTestCase(unittest.TestCase):
     def test_with_booleans(self):
         t = z3.And(True)

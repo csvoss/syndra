@@ -15,4 +15,4 @@ install:
   - cd ../..
   - pip install -r requirements.txt
 script:
-  nosetests new_engine
+  nosetests --match='^test_.*$' new_engine

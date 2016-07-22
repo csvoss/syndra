@@ -1,15 +1,17 @@
 import unittest
 
 import predicate
-import datatypes
 import structure
+
+from solver import MySolver
+solver = MySolver("enzyme", "enzyme_site", "substrate", "d", "e")
 
 class SimplePredicateTestCase(unittest.TestCase):
     def assertSat(self, pred):
-        self.assertTrue(pred.check_sat())
+        self.assertTrue(solver.quick_check(pred))
 
     def assertUnsat(self, pred):
-        self.assertFalse(pred.check_sat())
+        self.assertFalse(solver.quick_check(pred))
 
     def test_top_sat(self):
         self.assertSat(predicate.Top())
@@ -43,40 +45,36 @@ class PredicateTestCase(unittest.TestCase):
                 predicate.PregraphHas(r, e),
                 predicate.PostgraphHas(r, e.bound(d))
         ))
-        self.phi_model = self.phi.get_model()
-        self.psi_model = self.psi.get_model()
-
 
     def test_and_sat(self):
         p1 = predicate.Top()
         p2 = predicate.Top()
-        status = predicate.And(p1, p2)
+        status = solver.quick_check(predicate.And(p1, p2))
         self.assertTrue(status)
 
     def test_and_unsat(self):
         p1 = predicate.Top()
         p2 = predicate.Bottom()
-        status = predicate.And(p1, p2)
+        status = solver.quick_check(predicate.And(p1, p2))
         self.assertTrue(status)
 
     def test_or_sat(self):
         p1 = predicate.Bottom()
         p2 = predicate.Top()
-        status = predicate.Or(p1, p2)
+        status = solver.quick_check(predicate.Or(p1, p2))
         self.assertTrue(status)
 
     def test_or_unsat(self):
         p1 = predicate.Bottom()
         p2 = predicate.Bottom()
-        status = predicate.Or(p1, p2)
+        status = solver.quick_check(predicate.Or(p1, p2))
         self.assertTrue(status)
 
     def test_phi_sat(self):
-        self.assertTrue(self.phi.check_sat())
-
+        self.assertTrue(solver.quick_check(self.phi))
 
     def test_psi_sat(self):
-        self.assertTrue(self.psi.check_sat())
+        self.assertTrue(solver.quick_check(self.psi))
 
 
 @unittest.skip("Uncomment this class when you can convert z3 models to Python sets of rules.")
@@ -93,7 +91,7 @@ class ModelsAsSetsTestCase(unittest.TestCase):
     def test_or(self):
         pred = predicate.Or(self.phi, self.psi)
 
-        status = pred.check_sat()
+        status = solver.quick_check(pred)
         # This should be true: such a model can be constructed.
         self.assertTrue(status)
 
@@ -120,7 +118,7 @@ class ModelsAsSetsTestCase(unittest.TestCase):
     def test_join(self):
         pred = predicate.Join(self.phi, self.psi)
 
-        status = pred.check_sat()
+        status = solver.quick_check(pred)
         # This should be true: such a model can be constructed.
         self.assertTrue(status)
 
@@ -160,7 +158,7 @@ class ModelsAsSetsTestCase(unittest.TestCase):
     def test_and(self):
         pred = predicate.And(self.phi, self.psi)
 
-        status = pred.check_sat()
+        status = solver.quick_check(pred)
         # This should be true: such a model can be constructed.
         self.assertTrue(status)
 
@@ -181,7 +179,7 @@ class ModelsAsSetsTestCase(unittest.TestCase):
     def test_dontknow(self):
         pred = predicate.DontKnow(self.phi, self.psi)
 
-        status = pred.check_sat()
+        status = solver.quick_check(pred)
         # This should be true: such a model can be constructed.
         self.assertTrue(status)
 
@@ -195,7 +193,7 @@ class ModelsAsSetsTestCase(unittest.TestCase):
     def test_not(self):
         pred = predicate.Not(self.phi)
 
-        status = pred.check_sat()
+        status = solver.quick_check(pred)
         # This should be true: such a model can be constructed.
         pred = predicate.Not(self.phi)
         model = pred.get_model()

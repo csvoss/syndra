@@ -17,6 +17,7 @@ def check_sat(z3_predicate):
     solver = z3.Solver()
     with context(solver):
         solver.add(z3_predicate)
+        result = solver.check().r
         if result > 0:
             return True
         elif result < 0:
@@ -86,7 +87,8 @@ if __name__ == '__main__':
     # SAF1 = Agent("SAF1")
     # gtp = Label("GTP")
     # phosphate = Label("phosphate")
-    # print And(
+    # solver = MySolver("RAF", "HRAS", "MEK1", "ERK1", "SAF1")
+    # pred = And(
     #     ModelHasRule(lambda r: And(
     #             PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
     #             PregraphHas(r, MEK1),
@@ -102,7 +104,12 @@ if __name__ == '__main__':
     #             PregraphHas(r, SAF1),
     #             PostgraphHas(r, SAF1.labeled(phosphate))
     #     ))
-    # ).get_python_model()
+    # )
+    # solver.add(pred)
+    # print solver.check()
+    # print solver.model()
+    # print "---"
+
 
 
 
@@ -143,6 +150,5 @@ def is_candidate_inference(context, new_statement, inference):
 
 def is_candidate_unique_inference(context, new_statement, inference):
     is_unique = z3.Implies(z3.And(context, new_statement), inference) # must be valid
-    s = MySolver()
     return (check_valid(is_unique) and
             is_candidate_inference(context, new_statement, inference))
