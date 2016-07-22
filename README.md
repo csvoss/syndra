@@ -119,8 +119,6 @@ You will need to install Z3. Follow the Z3 installation instructions at [Z3Prove
 ```
 git clone https://github.com/Z3Prover/z3
 cd z3
-virtualenv venv
-source venv/bin/activate
 python scripts/mk_make.py --python
 cd build
 make
