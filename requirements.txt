@@ -1,8 +1,1 @@
-networkx
-jsonschema
-pandas
-pysb
-objectpath
-BeautifulSoup
-rdflib
 nose
