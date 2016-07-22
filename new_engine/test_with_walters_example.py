@@ -7,7 +7,6 @@ from solver import MySolver
 class WaltersExampleTestCase(unittest.TestCase):
 
     def test_build_context(self):
-        raise ValueError()
         RAF = Agent("RAF")
         HRAS = Agent("HRAS")
         MEK1 = Agent("MEK1")
@@ -40,14 +39,13 @@ class WaltersExampleTestCase(unittest.TestCase):
 
 
     def test_some_unsat_thing(self):
-        raise ValueError()
         RAF = Agent("RAF")
         HRAS = Agent("HRAS")
         MEK1 = Agent("MEK1")
         gtp = Label("GTP")
         phosphate = Label("phosphate")
 
-        predicate2 = And(
+        predicate = And(
             ModelHasRule(lambda r: And(
                     PregraphHas(r, RAF.bound(HRAS.labeled(gtp))),
                     PregraphHas(r, MEK1),

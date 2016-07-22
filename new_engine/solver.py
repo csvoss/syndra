@@ -103,33 +103,36 @@ class MySolver(object):
         n1 = self.new_node()
         n2 = self.new_node()
 
-        # These are some sanity constraints.
+        # These are some sanity constraints. Having an edge requires having the node.
         try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.has(g), n1)))
         try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.has(g), n2)))
-        try_assertion(z3.Implies(z3.Or(*map(lambda a: a==n1, self.nodes.values())), z3.Select(self.Graph.has(g), n1)))
-        try_assertion(z3.Implies(z3.Select(self.Graph.has(g), n1), z3.Or(*map(lambda a: a==n1, self.nodes.values()))))
+
+        # These are also sanity constraints; unnecessary now that Node's an enum.
+        # try_assertion(z3.Implies(z3.Or(*map(lambda a: a==n1, self.nodes.values())), z3.Select(self.Graph.has(g), n1)))
+        # try_assertion(z3.Implies(z3.Select(self.Graph.has(g), n1), z3.Or(*map(lambda a: a==n1, self.nodes.values()))))
 
         # Edges must be symmetric.
         try_assertion(z3.Implies(z3.Select(self.Graph.links(g), self.Edge.edge(n1, n2)), z3.Select(self.Graph.links(g), self.Edge.edge(n2, n1))))
 
-        mo = self._solver.model()
-        rules = [i[0] for i in mo[self.model_variable].as_list()[:-1]]
-        # These attempt to minimize the number of edges.
-        for rule in rules:
-            prg = self.Rule.pregraph(rule)
-            pog = self.Rule.postgraph(rule)
-            prlinks = self.Graph.links(prg)
-            prparents = self.Graph.parents(prg)
-            polinks = self.Graph.links(pog)
-            poparents = self.Graph.parents(pog)
-            for agent_1 in self.nodes.values():
-                for agent_2 in self.nodes.values():
-                    edge = self.Edge.edge(agent_1, agent_2)
-                    try_assertion(z3.Not(z3.Select(prparents, edge)))
-                    try_assertion(z3.Not(z3.Select(poparents, edge)))
-                    try_assertion(z3.Not(z3.Select(prlinks, edge)))
-                    try_assertion(z3.Not(z3.Select(polinks, edge)))
-
+        # The runtime of this edge-constraint part here is very slow.
+        # These attempt to minimize the number of edges, both normal
+        # edges and parent-site edges.
+        # mo = self._solver.model()
+        # rules = [i[0] for i in mo[self.model_variable].as_list()[:-1]]
+        # for rule in rules:
+        #     prg = self.Rule.pregraph(rule)
+        #     pog = self.Rule.postgraph(rule)
+        #     prlinks = self.Graph.links(prg)
+        #     prparents = self.Graph.parents(prg)
+        #     polinks = self.Graph.links(pog)
+        #     poparents = self.Graph.parents(pog)
+        #     for agent_1 in self.nodes.values():
+        #         for agent_2 in self.nodes.values():
+        #             edge = self.Edge.edge(agent_1, agent_2)
+        #             try_assertion(z3.Not(z3.Select(prparents, edge)))
+        #             try_assertion(z3.Not(z3.Select(poparents, edge)))
+        #             try_assertion(z3.Not(z3.Select(prlinks, edge)))
+        #             try_assertion(z3.Not(z3.Select(polinks, edge)))
 
 
         ## MODEL-GETTING
