@@ -73,11 +73,13 @@ True
 
 ### 3: Writing an *iota* predicate directly
 
-It is also possible to construct your own macros by writing *iota* predicates using Syndra. Consult `engine/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates.
+It is also possible to construct your own macros by writing *iota* predicates using Syndra. Consult `new_engine/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates.
 
 
 Manipulating predicates
 ---
+
+### Creating a solver
 
 ### Check satisfiability
 
@@ -112,22 +114,32 @@ True
 Installation instructions
 ---
 
+You will need to install Z3. Follow the Z3 installation instructions at [Z3Prover/z3](https://github.com/Z3Prover/z3), being sure to install the Python bindings:
+
+```
+git clone https://github.com/Z3Prover/z3
+cd z3
+virtualenv venv
+source venv/bin/activate
+python scripts/mk_make.py --python
+cd build
+make
+make install
+```
+
+Then, install Syndra itself.
+
+To install Syndra as a pip package: TODO make this a pip-installable package, then put instructions here
+
+Otherwise, to install this code locally:
+
 ```
 git clone https://github.com/csvoss/syndra/
 cd syndra
+virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-You need to install INDRA dependencies in order to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra).
+You also need to install INDRA dependencies if you are planning to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra).
 
-```
-python interface_indra_to_syndra.py
-```
-
-To test Syndra macros more directly, without passing through INDRA:
-
-```
-cd engine
-python test_macros.py
-```
