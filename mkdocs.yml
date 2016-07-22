@@ -1,0 +1,12 @@
+site_name: Syndra
+site_description: Logical deduction tool for analyzing high-level queries about the chemical representations of biological models
+
+repo_url: http://github.com/csvoss/syndra/tree/master/docs
+repo_name: GitHub
+
+site_author: Chelsea Voss, Massachusetts Institute of Technology
+
+pages:
+- ["index.md", Home]
+
+theme: readthedocs
