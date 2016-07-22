@@ -56,7 +56,7 @@ class PredicateTestCase(unittest.TestCase):
         p1 = predicate.Top()
         p2 = predicate.Bottom()
         status = solver.quick_check(predicate.And(p1, p2))
-        self.assertTrue(status)
+        self.assertFalse(status)
 
     def test_or_sat(self):
         p1 = predicate.Bottom()
@@ -68,7 +68,7 @@ class PredicateTestCase(unittest.TestCase):
         p1 = predicate.Bottom()
         p2 = predicate.Bottom()
         status = solver.quick_check(predicate.Or(p1, p2))
-        self.assertTrue(status)
+        self.assertFalse(status)
 
     def test_phi_sat(self):
         self.assertTrue(solver.quick_check(self.phi))

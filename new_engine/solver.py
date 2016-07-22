@@ -50,24 +50,9 @@ class MySolver(object):
         Arguments:
             syndra_predicate : Syndra predicate, instance of predicate.Predicate
         """
-        # Add the predicate's nodes to self.node_names
-        self.add_nodes_from(syndra_predicate)
-
         # Add the predicate iself to Z3
         z3_predicate = syndra_predicate.get_predicate(self.model_variable, self)
         self._solver.add(z3_predicate)
-
-    def add_nodes_from(self, syndra_predicate):
-        """
-        Add the nodes in syndra_predicate to our list of nodes.
-        """
-        # Traverse the predicate to get names of agents it contains
-        # Append those agent names to self.node_names
-        # If we have more nodes now, re-call self._attach_datatypes
-        # This will involve messing with the z3 solver state and
-        # re-adding a bunch of predicates to it
-        # TODO implement this
-        pass
 
     def _add_z3(self, z3_predicate):
         """Add a z3 predicate to the solver state.
