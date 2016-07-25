@@ -81,9 +81,6 @@ class MySolver(object):
             else:
                 print "Too constraining!", edge_assertion
 
-        # This is to check that I can assert stuff at all.
-        try_assertion(z3.And(True))
-
         g = z3.Const('testgraph', self.Graph)
         n1 = self.new_node()
         n2 = self.new_node()
