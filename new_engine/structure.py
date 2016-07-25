@@ -21,7 +21,12 @@ class Structure(object):
 
     def with_site(self, other_structure, anti=False):
         """Return a new Structure object for this structure having another as a site."""
-        return WithSite(self, other_structure, anti)
+        return WithSite(self, other_structure, anti, True)
+
+    def with_parent(self, other_structure, anti=False):
+        """Return a new Structure object for this structure having another as a
+        parent (the inverse relationship of a site). This is useful sometimes."""
+        return WithSite(self, other_structure, anti, False)
 
 
 class Agent(Structure):
@@ -73,8 +78,9 @@ class Bound(Structure):
 class WithSite(Structure):
     """This is a structure for requiring one structure to have another as a site.
     Do not instantiate this directly; instead use A.with_site(B)."""
-    def __init__(self, structure_1, structure_2, anti=False):
+    def __init__(self, structure_1, structure_2, anti=False, parent_to_site=True):
         self.anti = anti
+        self.parent_to_site = parent_to_site
         self.structure_1 = structure_1
         self.structure_2 = structure_2
 
@@ -87,7 +93,10 @@ class WithSite(Structure):
         parents = solver.Graph.parents(graph)
         node_1 = solver.nodes[self.structure_1.central_node_label()]
         node_2 = solver.nodes[self.structure_2.central_node_label()]
-        edge = solver.Edge.edge(node_1, node_2)
+        if self.parent_to_site:
+            edge = solver.Edge.edge(node_1, node_2)
+        else:
+            edge = solver.Edge.edge(node_2, node_1)
         has_parent = z3.Select(parents, edge)
         retval = z3.And(has_parent,
                         self.structure_1._assert(graph, solver),
