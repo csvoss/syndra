@@ -11,22 +11,34 @@ class Structure(object):
     def _assert(self, graph, solver):
         raise NotImplementedError("Implement _assert in subclasses.")
 
-    def bound(self, other_structure, anti=False):
+    def bound(self, other_structure):
         """Return a new Structure object for this structure bound to another."""
-        return Bound(self, other_structure, anti)
+        return Bound(self, other_structure, False)
 
-    def labeled(self, label, anti=False):
+    def unbound(self, other_structure):
+        return Bound(self, other_structure, True)
+
+    def labeled(self, label):
         """Return a new Structure object for this structure having a label."""
-        return Labeled(self, label, anti)
+        return Labeled(self, label, False)
 
-    def with_site(self, other_structure, anti=False):
+    def unlabeled(self, label):
+        return Labeled(self, label, True)
+
+    def with_site(self, other_structure):
         """Return a new Structure object for this structure having another as a site."""
-        return WithSite(self, other_structure, anti, True)
+        return WithSite(self, other_structure, False, True)
 
-    def with_parent(self, other_structure, anti=False):
+    def without_site(self, other_structure):
+        return WithSite(self, other_structure, True, True)
+
+    def with_parent(self, other_structure):
         """Return a new Structure object for this structure having another as a
         parent (the inverse relationship of a site). This is useful sometimes."""
-        return WithSite(self, other_structure, anti, False)
+        return WithSite(self, other_structure, False, False)
+
+    def without_parent(self, other_structure):
+        return WithSite(self, other_structure, False, False)
 
 
 class Agent(Structure):
