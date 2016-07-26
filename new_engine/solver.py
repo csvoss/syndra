@@ -31,6 +31,10 @@ class MySolver(object):
             self._solver = z3.Solver()
         except:
             raise ImportError("You must have Z3 installed. Have you activated your virtualenv?")
+
+        if len(node_names) == 0:
+            raise ValueError("MySolver must be instantiated with a list of names of all nodes you intend to refer to. For example, solver.MySolver('MEK', 'ERK', 'SAF1').")
+
         self.node_names = node_names
         self._attach_datatypes()
         self.model_variable = self.new_model()
