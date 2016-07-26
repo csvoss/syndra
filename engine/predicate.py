@@ -70,9 +70,6 @@ class ModelHasRule(Predicate):
     needs to have MEK on the left hand side:
 
     ModelHasRule(lambda r: And(PregraphHas(r, kinase)))
-
-    TODO: make the "lambda r" part no longer necessary by coding
-    PregraphHas and PostgraphHas to auto-insert the rule they need
     """
     def __init__(self, rule_function):
         self.rule_function = rule_function
@@ -83,6 +80,23 @@ class ModelHasRule(Predicate):
                          z3.And(model(self.rule_variable),
                                 self.rule_function(self.rule_variable)
                                 ._assert(model, solver)))
+
+class ForAllRules(Predicate):
+    """Claims that all rules of a model satisfy the given properties.
+
+    Constructor arguments:
+        rule_function :: Rule -> Predicate
+    """
+    def __init__(self, rule_function):
+        self.rule_function = rule_function
+        self.rule_variable = None
+    def _assert(self, model, solver):
+        self.rule_variable = solver.new_rule()
+        return z3.ForAll([self.rule_variable],
+                          z3.And(model(self.rule_variable),
+                                 self.rule_function(self.rule_variable)
+                                 ._assert(model, solver)))
+
 
 
 class PregraphHas(Predicate):
