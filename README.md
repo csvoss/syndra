@@ -1,5 +1,5 @@
 Syndra
-===
+=========
 [![Build Status](https://travis-ci.org/csvoss/syndra.svg?branch=master)](https://travis-ci.org/csvoss/syndra)
 
 Syndra is an **inference engine** for rule-based biological models.
@@ -8,12 +8,13 @@ It supports making inferences over sets of modeling rules, which allows **redund
 
 Syndra can also detect when a set of rules are **mutually incompatible**. For example, Syndra can detect that no model is compatible with the two rules `A, when phosphorylated, is active` and `A, when phosphorylated, is inactive` both at once.
 
-This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
+Finally, it supports **inferring gaps** in sets of model rules. Given that
 
-[Diagram of Syndra dependencies and architecture.](https://github.com/csvoss/syndra/blob/master/engine/dependencies.pdf)
+This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Our inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
+
 
 Constructing predicates
----
+---------
 
 Here are three different ways to construct a predicate in Syndra; once a predicate
 has been constructed, it can be used to make inferences.
@@ -44,22 +45,19 @@ We want to show that `s1`, `s2`, and `s3` all together imply `s4`. We can genera
 >>> pred = syndra_from_statements(s1, s2, s3)
 ```
 
-Then, we can check that these statements are mutually consistent, and also check that they imply `s4`. See *Manipulating predicates* for other things that can be done using predicates.
+Then, we can check that these statements are mutually consistent. The solver (see `solver.py`) provides a way to manipulate predicates in order to check their satisfiability.
 
 ```python
->>> pred.check_sat()   ## Consistency check
+>>> s = solver.MySolver()
+>>> s.add(pred)
+>>> s.check()   ## Consistency check
 True
 ```
 
-```python
->>> p4 = syndra_from_statements(s4)   ## Implication check
->>> pred.check_implies(p4)
-True
-```
 
 ### 2: From Syndra macros
 
-Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules. The current supported macros are `directly_phosphorylates`, `directly_activates`, and `phosphorylated_is_active` – these being sufficient to implement the INDRA motivating example.
+Syndra provides a number of *macros*, ways to easily construct Syndra predicates describing common biological rules. See `library.py` for these.
 
 ```python
 >>> from engine import macros
@@ -73,7 +71,7 @@ True
 
 ### 3: Writing an *iota* predicate directly
 
-It is also possible to construct your own macros by writing *iota* predicates using Syndra. Consult `new_engine/predicate.py` for a list of building blocks (subclasses of `Predicate`) that can be used to construct predicates.
+It is also possible to construct your own macros by writing *iota* predicates using Syndra. Consult `engine/predicate.py` and `engine/structure.py` for a list of building blocks (subclasses of `Predicate` and `Structure`) that can be used to construct predicates. See the tests for examples of how to build up these predicates.
 
 
 Manipulating predicates
@@ -140,4 +138,3 @@ pip install -r requirements.txt
 ```
 
 You also need to install INDRA dependencies if you are planning to test Syndra on INDRA statements; consult the instructions [here](https://github.com/sorgerlab/indra).
-
