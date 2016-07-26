@@ -12,6 +12,25 @@ Finally, it supports **inferring gaps** in sets of model rules. Given a set of f
 
 This system works by translating each rule into predicates in the ***iota*** language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Our inferences about these predicates are then powered by the [**z3 theorem prover**](https://github.com/Z3Prover/z3).
 
+Simple usage example
+---
+
+The following example demonstrates how to create a Syndra predicate, check its satisfiability, and get the model.
+
+```python
+import predicate
+import structure
+import solver
+s = solver.mySolver("a", "b")
+a = structure.Agent("a")
+b = structure.Agent("b")
+p = predicate.And(predicate.ModelHasRule(lambda r: predicate.PregraphHas(r, a.bound(b))), predicate.ModelHasRule(lambda r: predicate.PostgraphHas(r, a.unbound(b))))
+s.add(p)
+s.check()
+s.model()
+```
+
+
 
 Constructing predicates
 ---------
