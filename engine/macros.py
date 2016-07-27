@@ -51,7 +51,13 @@ def directly_activates(name_a, name_b):
     """
     Macro for 'activated "A" activates "B"'.
     """
-    pass # TODO: port to new_engine conventions
+    return ModelHasRule(lambda r: And(
+        PregraphHas(r, kinase.labeled(active)),
+        PregraphHas(r, substrate),
+        PostgraphHas(r, kinase.labeled(active)),
+        PostgraphHas(r, substrate.labeled(active)),
+        Not(PregraphHas(r, substrate.labeled(active))),
+    ))
 
 
 def negative_residue_behaves_as_if_phosphorylated():
