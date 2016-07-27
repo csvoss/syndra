@@ -59,6 +59,17 @@ class Or(Predicate):
     def _assert(self, model, solver):
         return z3.Or(*[p._assert(model, solver) for p in self.preds])
 
+class Implies(Predicate):
+    """Require that one predicate implies another predicate."""
+    def __init__(self, first, second):
+        _ensure_predicate(first)
+        _ensure_predicate(second)
+        self.first = first
+        self.second = second
+    def _assert(self, model, solver):
+        return z3.Implies(self.first._assert(model, solver),
+                          self.second._assert(model, solver))
+
 
 class ModelHasRule(Predicate):
     """Claims that a model has a rule satisfying the given properties.
