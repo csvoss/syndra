@@ -21,10 +21,13 @@ The following example demonstrates how to create a Syndra predicate, check its s
 import predicate
 import structure
 import solver
-s = solver.mySolver("a", "b")
+s = solver.MySolver("a", "b")
 a = structure.Agent("a")
 b = structure.Agent("b")
-p = predicate.And(predicate.ModelHasRule(lambda r: predicate.PregraphHas(r, a.bound(b))), predicate.ModelHasRule(lambda r: predicate.PostgraphHas(r, a.unbound(b))))
+p = predicate.And(predicate.ModelHasRule(lambda r:
+                        predicate.PregraphHas(r, a.bound(b))),
+                  predicate.ModelHasRule(lambda r:
+                        predicate.PostgraphHas(r, a.unbound(b))))
 s.add(p)
 s.check()
 s.model()
