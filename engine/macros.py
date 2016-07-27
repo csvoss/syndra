@@ -1,7 +1,7 @@
 import z3
 
-from structure import Label
-from predicate import ModelHasRule, PregraphHas, PostgraphHas, And, Not
+from structure import *
+from predicate import *
 
 phosphate = Label("phosphate")
 active = Label("active")
@@ -11,8 +11,8 @@ def directly_phosphorylates(kinase, substrate):
     Macro for 'activated "kinase" phosphorylates "substrate"'.
 
     Arguments:
-        kinase: an instance of structure.Agent
-        substrate: an instance of structure.Agent
+        kinase: an instance of Structure
+        substrate: an instance of Structure
 
     Returns:
         a Syndra predicate (that is, an instance of predicate.Predicate)
@@ -26,11 +26,24 @@ def directly_phosphorylates(kinase, substrate):
     ))
 
 # n.b.: there is an INDRA statement for this -- posttranslational modification
-def phosphorylated_is_active(name_b):
+def phosphorylated_is_active(agent):
     """
     Macro for 'phosphorylated "B" is active'.
+
+    Arguments:
+        agent: an instance of Structure
     """
-    pass # TODO: port to new_engine conventions
+    return ForAllRules(lambda r:
+                And(
+                    Implies(
+                        PregraphHas(r, agent.labeled(phosphate)),
+                        PregraphHas(r, agent.labeled(active))
+                    ),
+                    Implies(
+                        PostgraphHas(r, agent.labeled(phosphate)),
+                        PostgraphHas(r, agent.labeled(active))
+                    )))
+
 
 
 # n.b.: this is Activation
