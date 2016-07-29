@@ -11,8 +11,18 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+long_description = """
+Syndra is an inference engine for rule-based biological models.
+
+It supports making inferences over sets of modeling rules, which allows redundancies to be detected and eliminated from those rules. For example, if we have the rules MEK phosphorylates MAPK and MAPK, when phosphorylated, is active, Syndra can confirm that these rules imply MEK activates MAPK.
+
+Syndra can also detect when a set of rules are mutually incompatible. For example, Syndra can detect that no model is compatible with the two rules A, when phosphorylated, is active and A, when phosphorylated, is inactive both at once.
+
+Finally, it supports inferring gaps in sets of model rules. Given a set of facts which, when combined, are enough to deduce a single model, but which might not necessarily be rules themselves, Syndra can deduce the satisfying model.
+
+This system works by translating each rule into predicates in the iota language, a logic designed by Adrien Husson and Jean Krivine to describe predicates over rule-based biological models. Our inferences about these predicates are then powered by the z3 theorem prover.
+"""
+
 
 setup(
     name='syndra',
@@ -34,7 +44,7 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     keywords='biology z3 Kappa INDRA',
-    packages=['syndra'],
+    packages=['engine'],
     install_requires=['nose'],
     test_suite='nose.collector',
     tests_require=['nose'],
