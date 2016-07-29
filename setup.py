@@ -20,7 +20,8 @@ setup(
     description='Logical deduction tool for analyzing high-level queries about the chemical representations of biological models',
     long_description=long_description,
     url='https://github.com/csvoss/syndra',
-    author='Chelsea Voss ',
+    author='Chelsea Voss',
+    author_email='csvoss@mit.edu',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -33,6 +34,9 @@ setup(
         'Programming Language :: Python :: 2.7',
     ],
     keywords='biology z3 Kappa INDRA',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=['syndra'],
     install_requires=['nose'],
+    test_suite='nose.collector',
+    tests_require=['nose'],
+    zip_safe=False
 )
