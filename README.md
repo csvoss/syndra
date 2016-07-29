@@ -189,7 +189,7 @@ Note that a solver must be instantiated with a list of agents.
 
 If a predicate is satisfiable, that means that there is at least one way to
 build a model that satisfies that predicate. You can check whether this is true
-for any given Syndra predicate using `.check_sat()`.
+for any given Syndra predicate using `.check()`.
 
 ```python
 >>> s = solver.MySolver()
@@ -206,22 +206,16 @@ False
 ### Get model
 
 For a satisfiable predicate, you can also extract a specific example of a model
-that adheres to that predicate using `.get_model()`.
-
-Currently the models that are returned by this use z3's datatypes; future work
-may involve translating these to a more friendly format.
-
-### Check implication
-
-Syndra can verify whether one predicate logically implies the truth of another
-predicate using `.check_implies(other)`.
+that adheres to that predicate using `.model()`.
 
 ```python
->>> pred1 = predicate.Top()
->>> pred2 = predicate.Top()
->>> pred1.check_implies(pred2)
-True
+>>> s = solver.MySolver()
+>>> s.add(predicate)
+>>> s.model()
 ```
+
+The models that are returned by this come as Python objects made out of the classes `RuleResult`, `GraphResult`, and `NodeResult`. To get a raw z3 model instead, use `._model_z3()`.
+
 
 Installation instructions
 ---
@@ -258,4 +252,6 @@ Future directions
 ---
 * Improve the functionality in `solver.py` for converting Z3 models to Python models; perhaps at least print them out in some more Kappa-esque fashion
 * Include a library over Syndra for refinements on labels
-* Re-integrate the latest engine with INDRA, by fixing `integrate_indra_with_syndra.py`
+* Re-integrate the latest engine with INDRA, by fixing `interface_indra_to_syndra.py` and migrating `old/engine/statements_to_predicates.py` to the new `engine/`
+
+See [Issues](https://github.com/csvoss/syndra/issues) for more.
