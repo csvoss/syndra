@@ -2,7 +2,8 @@
 Run this file to demo INDRA -> Syndra.
 """
 
-from engine.solver import solver
+import engine.solver
+#from engine.solver import solver
 
 # These are just to quickly detect and tell the user about some issues which
 # caused me errors during my test-runs; the issues are easy to fix.
